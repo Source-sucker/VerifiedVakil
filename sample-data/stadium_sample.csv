@@ -1,0 +1,9 @@
+gate_id,capacity,current,status
+1,5000,4200,open
+2,4500,3800,open
+3,3800,3500,open
+4,4200,2100,open
+5,3500,3200,open
+6,4000,1200,open
+7,3800,3400,open
+8,4500,4100,open

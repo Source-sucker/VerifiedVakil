@@ -1,0 +1,518 @@
+/**
+ * Concourse - FIFA World Cup 2026 Operations
+ * Design system: broadcast control-room, not generic AI dashboard
+ */
+
+/* ===== CSS Variables ===== */
+:root {
+  /* Color system - broadcast/matchday control room */
+  --bg-base: #0E1A24;
+  --bg-panel: #16283A;
+  --accent-turf: #4C7A5E;
+  --accent-gold: #C9A227;
+  --accent-signal: #B5432E;
+  --text-primary: #E7ECF2;
+  --text-secondary: #8A98A8;
+  --border-color: #2A3B4D;
+
+  /* Typography */
+  --font-display: 'IBM Plex Sans Condensed', sans-serif;
+  --font-data: 'IBM Plex Mono', monospace;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+}
+
+/* ===== Reset & Base ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-data);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-base);
+  overflow-x: hidden;
+}
+
+/* ===== Skip Link ===== */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  ration: none;
+  font-weight: 600;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ===== App Container ===== */
+.app-container {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-rows: auto 1fr auto;
+  grid-template-arkground: var(--border-color);
+}
+
+/* ===== Header ===== */
+.app-header {
+  grid-area: header;
+  background: var(--bg-panel);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.app-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.app-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-md);
+}
+
+/* ===== Navigation ===== */
+.module-nav {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-md);
+}
+
+.nav-btn {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover,
+.nav-btn:focus {
+  color: var(--text-primary);
+  border-color: var(--accent-turf);
+  outline: 2px solid var(--accent-turf);
+  outline-offset: 2px;
+}
+
+.nav-btn.active {
+  background: var(--accent-turf);
+  color: var(--bg-base);
+  border-color: var(--accent-turf);
+}
+
+/* ===== Upload Controls ===== */
+.upload-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.upload-btn {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.upload-btn input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.upload-btn span {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.upload-btn:hover span,
+.upload-btn:focus-within span {
+  border-color: var(--accent-gold);
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+.upload-status {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+/* ===== Main Layout ===== */
+.app-main {
+  grid-area: main;
+  background: var(--bg-base);
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 1px;
+  background: var(--border-color);
+  overflow: hidden;
+}
+
+/* ===== Stadium Map (Signature Element) ===== */
+.stadium-map {
+  background: var(--bg-panel);
+  padding: var(--spacing-lg);
+  overflow: hidden;
+}
+
+#stadium-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.gate-node {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.gate-node:hover,
+.gate-node:focus {
+  filter: brightness(1.3);
+}
+
+/* Gate risk colors */
+.gate-low {
+  fill: var(--accent-turf);
+}
+
+.gate-medium {
+  fill: var(--accent-gold);
+  animation: pulse-medium 2s ease-in-out infinite;
+}
+
+.gate-high {
+  fill: var(--accent-signal);
+  animation: pulse-high 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-medium {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-high {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ===== Module Panel ===== */
+.module-panel {
+  background: var(--bg-base);
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+}
+
+.module-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.module-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* ===== Cards ===== */
+.card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 2px;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.card-meta {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-family: var(--font-data);
+}
+
+.card-body {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* ===== Badges ===== */
+.badge {
+  display: inline-block;
+  font-family: var(--font-data);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-low { background: var(--accent-turf); color: var(--bg-base); }
+.badge-medium { background: var(--accent-gold); color: var(--bg-base); }
+.badge-high { background: var(--accent-signal); color: var(--text-primary); }
+.badge-critical { background: var(--accent-signal); color: var(--text-primary); font-weight: 600; }
+
+/* ===== Buttons ===== */
+.btn {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: 2px;
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover,
+.btn:focus {
+  border-color: var(--accent-turf);
+  outline: 2px solid var(--accent-turf);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background: var(--accent-turf);
+  color: var(--bg-base);
+  border-color: var(--accent-turf);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  filter: brightness(1.2);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== AI Response ===== */
+.ai-response {
+  background: var(--bg-panel);
+  border-left: 3px solid var(--accent-turf);
+  padding: var(--spacing-md);
+  margin: var(--spacing-md) 0;
+}
+
+.ai-response-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.ai-label {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--accent-turf);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.confidence {
+  font-family: var(--font-data);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.recommendation {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.6;
+}
+
+.supporting-data {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-color);
+}
+
+.alternative {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: var(--spacing-sm);
+}
+
+/* ===== Insight Feed ===== */
+.insight-feed {
+  grid-area: aside;
+  background: var(--bg-panel);
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+  border-left: 1px solid var(--border-color);
+}
+
+.feed-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.insight-item {
+  background: var(--bg-base);
+  border-left: 2px solid var(--accent-turf);
+  padding: var(--spacing-sm);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.insight-item.warning {
+  border-left-color: var(--accent-gold);
+}
+
+.insight-item.critical {
+  border-left-color: var(--accent-signal);
+}
+
+.insight-time {
+  font-family: var(--font-data);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: var(--spacing-xs);
+}
+
+/* ===== Loading State ===== */
+.loading {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--accent-turf);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== Screen Reader Only ===== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-countportant;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1200px) {
+  .app-container {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "main"
+      "aside";
+  }
+
+  .app-main {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-feed {
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+  }
+}
+
+@media (max-width: 768px) {
+  .module-nav {
+    gap: var(--spacing-xs);
+  }
+
+  .nav-btn {
+    font-size: 0.75rem;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .app-main {
+    grid-template-columns: 1fr;
+  }
+
+  .stadium-map {
+    min-height: 300px;
+  }
+}
