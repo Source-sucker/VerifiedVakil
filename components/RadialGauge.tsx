@@ -16,19 +16,16 @@ export default function RadialGauge({
   subtitle,
   showBadge = true,
 }: RadialGaugeProps) {
-  // Semi-circle gauge dimensions
-  const radius = 86;
+  // Arc geometry: center at (120, 114), radius 84
+  const radius = 84;
   const strokeWidth = 12;
-  const circumference = Math.PI * radius; // Half-circle arc length (~270.18)
+  const circumference = Math.PI * radius; // Arc length ~263.89
   const boundedScore = Math.max(0, Math.min(100, Math.round(score)));
   const strokeDashoffset = circumference - (boundedScore / 100) * circumference;
 
-  // Calculate pointer needle angle (0 score = 180° / left; 100 score = 0° / right)
-  const angleDeg = 180 - (boundedScore / 100) * 180;
-  const angleRad = (angleDeg * Math.PI) / 180;
-  const needleLength = 70;
-  const needleX = 120 + needleLength * Math.cos(angleRad);
-  const needleY = 122 - needleLength * Math.sin(angleRad);
+  // Suffix offset from center (x=120) based on digit count to guarantee 0 collision & dead centering
+  const numDigits = boundedScore.toString().length;
+  const suffixOffset = numDigits === 1 ? 18 : numDigits === 3 ? 38 : 28;
 
   const getTheme = (s: number) => {
     if (s >= 75) {
@@ -36,7 +33,10 @@ export default function RadialGauge({
         badgeText: "Model Tenancy Compliant",
         badgeClass: "bg-emerald-950/60 text-emerald-300 border-emerald-500/40 shadow-emerald-950/40",
         icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />,
-        scoreColor: "text-emerald-400",
+        scoreColor: "#34d399",
+        gradStart: "#10b981",
+        gradEnd: "#34d399",
+        glowColor: "rgba(52, 211, 153, 0.25)",
       };
     }
     if (s >= 45) {
@@ -44,22 +44,28 @@ export default function RadialGauge({
         badgeText: "Moderate Deviation Detected",
         badgeClass: "bg-amber-950/60 text-amber-300 border-amber-500/40 shadow-amber-950/40",
         icon: <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />,
-        scoreColor: "text-amber-400",
+        scoreColor: "#fbbf24",
+        gradStart: "#f59e0b",
+        gradEnd: "#fbbf24",
+        glowColor: "rgba(251, 191, 36, 0.25)",
       };
     }
     return {
       badgeText: "Predatory Draft Detected",
       badgeClass: "bg-rose-950/70 text-rose-300 border-rose-500/40 shadow-rose-950/40",
       icon: <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />,
-      scoreColor: "text-rose-400",
+      scoreColor: "#fb7185",
+      gradStart: "#f43f5e",
+      gradEnd: "#fb7185",
+      glowColor: "rgba(251, 113, 133, 0.25)",
     };
   };
 
   const theme = getTheme(boundedScore);
 
   return (
-    <div className="relative flex flex-col items-center justify-center pt-2 pb-1">
-      {/* Gauge Arc & Needle Container */}
+    <div className="relative flex flex-col items-center justify-center pt-2 pb-1 select-none">
+      {/* Gauge Arc Container */}
       <div className="relative w-64 h-36 flex items-center justify-center">
         <svg
           viewBox="0 0 240 135"
@@ -67,69 +73,92 @@ export default function RadialGauge({
           aria-hidden="true"
         >
           <defs>
-            <linearGradient id="radialGradientGauge" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#f43f5e" />
-              <stop offset="45%" stopColor="#f59e0b" />
-              <stop offset="100%" stopColor="#10b981" />
+            <linearGradient id="gaugeActiveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor={theme.gradStart} />
+              <stop offset="100%" stopColor={theme.gradEnd} />
             </linearGradient>
 
-            <filter id="gaugeGlowFilter" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
+            <filter id="gaugeArcGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="3.5" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+
+            <filter id="scoreTextGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor={theme.glowColor} />
             </filter>
           </defs>
 
-          {/* Background Track Arc */}
+          {/* Inactive Track Arc */}
           <path
-            d="M 34 122 A 86 86 0 0 1 206 122"
+            d="M 36 114 A 84 84 0 0 1 204 114"
             fill="none"
             stroke="#1e293b"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
           />
 
-          {/* Value Progress Arc */}
+          {/* Active Value Progress Arc */}
           <path
-            d="M 34 122 A 86 86 0 0 1 206 122"
+            d="M 36 114 A 84 84 0 0 1 204 114"
             fill="none"
-            stroke="url(#radialGradientGauge)"
+            stroke="url(#gaugeActiveGradient)"
             strokeWidth={strokeWidth}
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
-            filter="url(#gaugeGlowFilter)"
+            filter="url(#gaugeArcGlow)"
             className="transition-all duration-700 ease-out"
           />
 
-          {/* Needle Center Pivot Pin */}
-          <circle cx="120" cy="122" r="3.5" fill="#64748b" />
+          {/* Instrument Ticks (180°, 135°, 90°, 45°, 0°) matching reference */}
+          <line x1="22" y1="114" x2="30" y2="114" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
+          <line x1="60.6" y1="54.6" x2="66.2" y2="60.2" stroke="#334155" strokeWidth="2" strokeLinecap="round" />
+          <line x1="120" y1="20" x2="120" y2="30" stroke="#475569" strokeWidth="2.5" strokeLinecap="round" />
+          <line x1="179.4" y1="54.6" x2="173.8" y2="60.2" stroke="#334155" strokeWidth="2" strokeLinecap="round" />
+          <line x1="210" y1="114" x2="218" y2="114" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
 
-          {/* Pointer Needle */}
-          <line
-            x1="120"
-            y1="122"
-            x2={needleX}
-            y2={needleY}
-            stroke="#cbd5e1"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            opacity="0.8"
-            className="transition-all duration-700 ease-out"
-          />
+          {/* Numbers Group: Score is MATHEMATICALLY DEAD-CENTERED on x=120 */}
+          <g transform="translate(120, 84)">
+            {/* Hero Score: Anchor middle guarantees exact horizontal alignment on the center axis */}
+            <text
+              x="0"
+              y="0"
+              textAnchor="middle"
+              dominantBaseline="alphabetic"
+              fontSize="44"
+              fontWeight="800"
+              fontFamily="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+              fill={theme.scoreColor}
+              letterSpacing="-1px"
+              filter="url(#scoreTextGlow)"
+            >
+              {boundedScore}
+            </text>
+
+            {/* Suffix /100: Anchored start, exactly sharing the alphabetic baseline with the hero number */}
+            <text
+              x={suffixOffset}
+              y="0"
+              textAnchor="start"
+              dominantBaseline="alphabetic"
+              fontSize="14"
+              fontWeight="600"
+              fontFamily="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+              fill="#64748b"
+            >
+              /100
+            </text>
+          </g>
+
+          {/* Center Instrument Pin Ring */}
+          <circle cx="120" cy="114" r="5" fill="#0b0f19" stroke={theme.scoreColor} strokeWidth="2" />
+          <circle cx="120" cy="114" r="1.5" fill={theme.scoreColor} />
         </svg>
-
-        {/* Center Score Readout (Comfortably positioned inside the dome) */}
-        <div className="absolute top-[42px] left-0 right-0 flex items-baseline justify-center select-none pointer-events-none">
-          <span className="text-4xl sm:text-5xl font-black tracking-tight text-white font-mono drop-shadow-[0_0_16px_rgba(255,255,255,0.25)]">
-            {boundedScore}
-          </span>
-          <span className="text-sm font-mono text-slate-400 ml-1">/100</span>
-        </div>
       </div>
 
-      {/* Pill Badge (Cleanly placed below the arc with dedicated breathing room) */}
+      {/* Pill Badge (Cleanly placed below the arch with dedicated breathing room) */}
       {showBadge && (
-        <div className="mt-3.5">
+        <div className="mt-2.5">
           <div
             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold shadow-md transition-all ${theme.badgeClass}`}
           >
