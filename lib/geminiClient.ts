@@ -6,6 +6,128 @@ const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 const MODEL_NAME = "gemini-2.5-flash";
 
 /**
+ * 0. Multimodal OCR via Gemini 2.5 Flash
+ * Transcribes legal text from uploaded images, scans, and document photos.
+ */
+export async function performOCRWithGemini(
+  base64Data: string,
+  mimeType: string
+): Promise<{ text: string; latencyMs: number }> {
+  const start = Date.now();
+
+  if (!genAI) {
+    // Offline deterministic fallback for demo
+    return {
+      text: `RESIDENTIAL LEAVE AND LICENSE AGREEMENT (SCANNED DOCUMENT)
+
+1. DURATION AND TERM:
+The term of this agreement shall be for a period of 11 months commencing from 1st October 2026.
+
+2. MONTHLY LICENSE FEE:
+The Licensee agrees to pay Rs. 32,000/- per month on or before the 5th of each month.
+
+3. SECURITY DEPOSIT:
+The Licensee has deposited Rs. 1,60,000/-, equivalent to 5 months rent as deposit with the Licensor.
+
+4. TERMINATION NOTICE:
+Either party may terminate this agreement with 15 days written notice.
+
+5. RIGHT TO ENTER AND INSPECT:
+The Licensor shall give 12 hours notice prior to entering the premises for inspection.
+
+6. MAINTENANCE:
+Day to day maintenance by licensee. Structural repairs by licensor.`,
+      latencyMs: Date.now() - start,
+    };
+  }
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: MODEL_NAME,
+      systemInstruction: `You are an accurate, high-fidelity legal document OCR transcription engine.
+Transcribe all text from the provided agreement image or document photo.
+Preserve clause numbers, headings, dates, rupee amounts, and duration figures accurately.
+Do not add commentary, markdown backticks, or preamble. Output only the exact transcribed text.`,
+    });
+
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          data: base64Data,
+          mimeType: mimeType || "image/jpeg",
+        },
+      },
+      "Transcribe all text from this residential lease agreement accurately and completely:",
+    ]);
+
+    const text = result.response.text().trim();
+    return {
+      text,
+      latencyMs: Date.now() - start,
+    };
+  } catch (error) {
+    console.warn("Gemini OCR failed, using fallback:", error);
+    return {
+      text: "Could not transcribe image. Please ensure the image is clear or paste the text directly.",
+      latencyMs: Date.now() - start,
+    };
+  }
+}
+
+/**
+ * Proactive Assistive Legal Suggestions from Chatbot
+ */
+export async function generateChatbotSuggestionsWithAI(
+  safetyScore: number,
+  flaggedClauses: Array<{ label: string; reason: string; section?: string }>
+): Promise<{ greeting: string; suggestions: string[]; latencyMs: number }> {
+  const start = Date.now();
+
+  const fallbackGreeting =
+    safetyScore < 50
+      ? `⚠️ I noticed this agreement has a low Safety Index (${safetyScore}/100) with several one-sided clauses. Let's look at the key flags before you consider signing.`
+      : `✅ I have reviewed your agreement (Safety Index: ${safetyScore}/100). Most terms look balanced, with a few clauses you may want to clarify with the landlord.`;
+
+  const fallbackSuggestions = flaggedClauses.slice(0, 3).map((c) =>
+    `Regarding ${c.label}: Ask your landlord if this can be aligned with statutory standards (${c.reason}).`
+  );
+
+  if (!genAI || flaggedClauses.length === 0) {
+    return {
+      greeting: fallbackGreeting,
+      suggestions: fallbackSuggestions.length > 0 ? fallbackSuggestions : ["Your agreement appears balanced. Ensure all agreed utility and deposit terms are recorded in writing."],
+      latencyMs: Date.now() - start,
+    };
+  }
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: MODEL_NAME,
+      systemInstruction: `You are an assistive legal reading companion for Indian residential tenants.
+You help tenants spot one-sided clauses and prepare negotiation questions for their landlord.
+You are NOT a lawyer and do not give legal advice or provide lawyer consultations.
+Provide a concise 2-sentence conversational greeting, followed by 3 actionable negotiation suggestions.`,
+    });
+
+    const prompt = `SAFETY SCORE: ${safetyScore}/100\nFLAGGED CLAUSES:\n${JSON.stringify(flaggedClauses, null, 2)}\n\nGenerate conversational assistive summary and 3 negotiation discussion points:`;
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
+
+    return {
+      greeting: text.split("\n\n")[0] || fallbackGreeting,
+      suggestions: fallbackSuggestions,
+      latencyMs: Date.now() - start,
+    };
+  } catch (error) {
+    return {
+      greeting: fallbackGreeting,
+      suggestions: fallbackSuggestions,
+      latencyMs: Date.now() - start,
+    };
+  }
+}
+
+/**
  * 1. Plain-Language Clause Rewrite
  * Guardrail: "Rewrite only. Do not add any legal claim, number, or obligation not present in the source text."
  */
@@ -16,7 +138,6 @@ export async function simplifyClauseWithAI(
   const start = Date.now();
 
   if (!genAI) {
-    // Offline deterministic fallback
     return {
       plainRewrite: generateOfflineSimplification(clauseText, clauseLabel),
       latencyMs: Date.now() - start,

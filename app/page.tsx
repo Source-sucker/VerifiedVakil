@@ -19,11 +19,14 @@ import {
   Search,
   ExternalLink,
   ChevronRight,
+  Upload,
+  Bot,
 } from "lucide-react";
 import { DocumentAnalysisResult, AnalyzedClause } from "@/lib/clauseEngine";
 import ClauseCard from "@/components/ClauseCard";
 import CompareView from "@/components/CompareView";
-import ChatDrawer from "@/components/ChatDrawer";
+import ChatbotAssistant from "@/components/ChatbotAssistant";
+import DocumentUploadZone from "@/components/DocumentUploadZone";
 import LawyerQuestionsModal from "@/components/LawyerQuestionsModal";
 import LatencyBadge from "@/components/LatencyBadge";
 import RadialGauge from "@/components/RadialGauge";
@@ -31,6 +34,7 @@ import Sidebar, { NavView } from "@/components/Sidebar";
 
 export default function HomePage() {
   const [agreementText, setAgreementText] = useState("");
+  const [documentTitle, setDocumentTitle] = useState("Bangalore Predatory Lease (11 Months)");
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<DocumentAnalysisResult | null>(null);
   const [timings, setTimings] = useState<{
@@ -39,7 +43,7 @@ export default function HomePage() {
     totalMs: number;
   }>({ deterministicMs: 0, aiMs: 0, totalMs: 0 });
 
-  const [activeView, setActiveView] = useState<NavView>("inspector");
+  const [activeView, setActiveView] = useState<NavView>("chatbot");
   const [filterRisk, setFilterRisk] = useState<string>("all");
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
   const [compareData, setCompareData] = useState<any>(null);
@@ -47,10 +51,11 @@ export default function HomePage() {
   const [selectedBench, setSelectedBench] = useState<string>("aggressive");
 
   // Load sample agreement
-  const loadSample = async (fileName: string, benchKey: string) => {
+  const loadSample = async (fileName: string, benchKey: string, title: string) => {
     try {
       setLoading(true);
       setSelectedBench(benchKey);
+      setDocumentTitle(title);
       const res = await fetch(`/sample-docs/${fileName}`);
       const text = await res.text();
       setAgreementText(text);
@@ -87,6 +92,15 @@ export default function HomePage() {
     }
   };
 
+  // When a user uploads a document via DocumentUploadZone (text or OCR'd scan)
+  const handleUploadedDocument = async (text: string, sourceName: string) => {
+    setDocumentTitle(sourceName);
+    setAgreementText(text);
+    setSelectedBench("custom");
+    await runAnalysis(text);
+    setActiveView("chatbot"); // Automatically take them to the chatbot guide
+  };
+
   // Fetch comparison data when user switches to compare
   useEffect(() => {
     if (activeView === "compare" && agreementText && !compareData) {
@@ -107,7 +121,7 @@ export default function HomePage() {
 
   // Initial load
   useEffect(() => {
-    loadSample("sample-lease-aggressive.txt", "aggressive");
+    loadSample("sample-lease-aggressive.txt", "aggressive", "Bangalore Predatory Lease (11 Months)");
   }, []);
 
   const filteredClauses = analysis
@@ -134,7 +148,7 @@ export default function HomePage() {
         {/* Top Navbar */}
         <header className="sticky top-0 z-30 bg-[#0a0f1d]/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 py-3 no-print">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            {/* Left: Mobile Title & Search */}
+            {/* Search */}
             <div className="flex items-center gap-3 flex-1 max-w-md">
               <div className="relative w-full">
                 <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -146,22 +160,19 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Badges: Active Notice & API Latency */}
+            {/* Badges & Actions */}
             <div className="flex items-center gap-2.5 flex-wrap">
-              {/* Active Statutory Notice Pill (as seen in Nano Banana design) */}
               <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
                 Active Notice: Model Tenancy Act, 2021
               </span>
 
-              {/* Measured Real Latency */}
               <LatencyBadge
                 deterministicMs={timings.deterministicMs}
                 aiMs={timings.aiMs}
                 totalMs={timings.totalMs}
               />
 
-              {/* Checklist Export */}
               {analysis && (
                 <button
                   onClick={() => setIsChecklistModalOpen(true)}
@@ -175,69 +186,90 @@ export default function HomePage() {
           </div>
         </header>
 
-        {/* Dashboard Content Area */}
+        {/* Dashboard Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
-          {/* Dashboard Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          {/* Header & Quick Tab Selector */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                Tenant Dashboard: <span className="text-indigo-400">Legal Protection Portal</span>
+                Tenant Dashboard: <span className="text-cyan-400">Legal Protection & OCR Portal</span>
               </h1>
               <p className="text-xs text-slate-400 mt-0.5">
-                Assistive Self-Help & Statutory Risk Evaluation • Powered by Google Gemini 2.5 Flash
+                Assistive Lease Ingestion & Citation-Locked Chatbot Guide • Powered by Gemini 2.5 Flash
               </p>
             </div>
 
-            {/* Mobile Tab Pills */}
-            <div className="flex md:hidden items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+            {/* View Switcher Pills */}
+            <div className="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 text-xs">
+              <button
+                onClick={() => setActiveView("chatbot")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold transition-all ${
+                  activeView === "chatbot"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Bot className="w-3.5 h-3.5" />
+                Chatbot Guide
+              </button>
+
               <button
                 onClick={() => setActiveView("inspector")}
-                className={`px-3 py-1 rounded-lg ${
-                  activeView === "inspector" ? "bg-indigo-600 text-white" : "text-slate-400"
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold transition-all ${
+                  activeView === "inspector"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                    : "text-slate-400 hover:text-white"
                 }`}
               >
-                Review
+                <Layers className="w-3.5 h-3.5" />
+                Clause Inspector
               </button>
+
+              <button
+                onClick={() => setActiveView("upload")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold transition-all ${
+                  activeView === "upload"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Upload className="w-3.5 h-3.5" />
+                Upload & OCR
+              </button>
+
               <button
                 onClick={() => setActiveView("compare")}
-                className={`px-3 py-1 rounded-lg ${
-                  activeView === "compare" ? "bg-indigo-600 text-white" : "text-slate-400"
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold transition-all ${
+                  activeView === "compare"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                    : "text-slate-400 hover:text-white"
                 }`}
               >
+                <Scale className="w-3.5 h-3.5" />
                 Compare
-              </button>
-              <button
-                onClick={() => setActiveView("chat")}
-                className={`px-3 py-1 rounded-lg ${
-                  activeView === "chat" ? "bg-indigo-600 text-white" : "text-slate-400"
-                }`}
-              >
-                Q&A
               </button>
             </div>
           </div>
 
-          {/* Top Hero Grid: Radial Speedometer Gauge + Quick-Load Test Benches */}
+          {/* Top Hero Section: Speedometer Radial Gauge + Quick Load Benches */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-            {/* Left Hero Card: Radial Gauge */}
+            {/* Speedometer Radial Gauge */}
             <div className="lg:col-span-5 glass-panel rounded-2xl p-5 border border-slate-800/90 shadow-2xl flex flex-col justify-between">
               <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                   Property Safety Index
                 </span>
                 <span className="text-[11px] font-mono text-cyan-400">
-                  {analysis?.totalClauses || 0} Clauses Scored
+                  {analysis?.totalClauses || 0} Clauses Evaluated
                 </span>
               </div>
 
-              {/* Speedometer Radial Gauge */}
               <RadialGauge
                 score={analysis?.safetyScore ?? 50}
-                title="Bangalore Residential Lease (11 Months)"
-                subtitle="Evaluated against MTA 2021 & TPA 1882"
+                title={documentTitle}
+                subtitle="Model Tenancy Act 2021 & TPA 1882"
               />
 
-              {/* Risk Counts Pill Bar */}
               <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800 text-center">
                 <div className="bg-rose-950/30 border border-rose-500/20 p-2 rounded-xl">
                   <div className="text-[10px] text-rose-300 font-medium">High Risks</div>
@@ -260,29 +292,28 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Hero Card: Quick-Load Test Benches */}
+            {/* Quick Load Test Benches & Ingestion Card */}
             <div className="lg:col-span-7 glass-panel rounded-2xl p-5 border border-slate-800/90 shadow-2xl flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                 <div>
                   <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                    Quick-Load Lease Test Benches
+                    Live Evaluation Benchmarks & Document Input
                   </h2>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    Live camera testing • Click to load synthetic benchmark lease instantly
+                    Click a synthetic lease or use the Upload tab to scan agreements
                   </p>
                 </div>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">
-                  Status: Ready
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-cyan-400 border border-slate-700">
+                  OCR Engine: Active
                 </span>
               </div>
 
               {/* 3 Bench Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Bench 1: Predatory */}
                 <button
                   onClick={() => {
                     setCompareData(null);
-                    loadSample("sample-lease-aggressive.txt", "aggressive");
+                    loadSample("sample-lease-aggressive.txt", "aggressive", "Bangalore Predatory Lease (11 Months)");
                   }}
                   disabled={loading}
                   className={`p-3.5 rounded-xl border text-left transition-all ${
@@ -294,20 +325,19 @@ export default function HomePage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-bold text-rose-300 flex items-center gap-1">
                       <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
-                      Predatory
+                      Predatory Draft
                     </span>
                     <span className="text-[10px] font-mono text-rose-400 font-bold">24/100</span>
                   </div>
                   <p className="text-[11px] text-slate-400 leading-snug">
-                    10-month deposit, 0-day notice, unconditional entry rights.
+                    10mo deposit, 0-day notice, unconditional entry.
                   </p>
                 </button>
 
-                {/* Bench 2: Fair Model */}
                 <button
                   onClick={() => {
                     setCompareData(null);
-                    loadSample("sample-lease-fair.txt", "fair");
+                    loadSample("sample-lease-fair.txt", "fair", "MTA Compliant Tenancy Draft");
                   }}
                   disabled={loading}
                   className={`p-3.5 rounded-xl border text-left transition-all ${
@@ -319,20 +349,19 @@ export default function HomePage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-bold text-emerald-300 flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      Fair MTA
+                      Model Tenancy
                     </span>
                     <span className="text-[10px] font-mono text-emerald-400 font-bold">92/100</span>
                   </div>
                   <p className="text-[11px] text-slate-400 leading-snug">
-                    2-month deposit, 30-day notice, 24h entry notice.
+                    2mo deposit, 30d notice, 24h entry notice.
                   </p>
                 </button>
 
-                {/* Bench 3: Adversarial */}
                 <button
                   onClick={() => {
                     setCompareData(null);
-                    loadSample("sample-lease-adversarial.txt", "adversarial");
+                    loadSample("sample-lease-adversarial.txt", "adversarial", "Prompt Injection Test B");
                   }}
                   disabled={loading}
                   className={`p-3.5 rounded-xl border text-left transition-all ${
@@ -344,7 +373,7 @@ export default function HomePage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-bold text-amber-300 flex items-center gap-1">
                       <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-                      Test B
+                      Test B Injection
                     </span>
                     <span className="text-[10px] font-mono text-amber-400 font-bold">Immune</span>
                   </div>
@@ -354,41 +383,97 @@ export default function HomePage() {
                 </button>
               </div>
 
-              {/* Paste or Custom Input Dropdown */}
-              <details className="text-xs text-slate-400 group">
-                <summary className="cursor-pointer text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1">
-                  <span>Custom Agreement Input (Paste or Edit Text)</span>
-                  <ChevronRight className="w-3.5 h-3.5 group-open:rotate-90 transition-transform" />
-                </summary>
-                <div className="mt-3 space-y-2">
-                  <textarea
-                    value={agreementText}
-                    onChange={(e) => setAgreementText(e.target.value)}
-                    rows={4}
-                    placeholder="Paste agreement text here..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-300 focus:outline-none focus:border-indigo-500"
-                  />
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => {
-                        setCompareData(null);
-                        runAnalysis();
-                      }}
-                      disabled={loading || !agreementText.trim()}
-                      className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold"
-                    >
-                      {loading ? "Analyzing..." : "Re-Analyze"}
-                    </button>
-                  </div>
-                </div>
-              </details>
+              {/* Upload or Manual Paste Row */}
+              <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
+                <span>Want to test your own agreement?</span>
+                <button
+                  onClick={() => setActiveView("upload")}
+                  className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  Open Document Upload & OCR Zone &rarr;
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* View Container */}
+          {/* VIEW 1: CHATBOT ASSISTANT (FRONT AND CENTER) */}
+          {activeView === "chatbot" && (
+            <section aria-labelledby="chatbot-view-heading" className="space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <div>
+                  <h2 id="chatbot-view-heading" className="text-base font-bold text-white flex items-center gap-2">
+                    <Bot className="w-5 h-5 text-indigo-400" />
+                    Assistive Legal Chatbot & Negotiation Guide
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Proactive statutory breakdown, plain-English explanations, and tenant discussion points.
+                  </p>
+                </div>
+                <span className="text-xs font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-500/30 px-3 py-1 rounded-full">
+                  Locked to Curated Bare Acts
+                </span>
+              </div>
+
+              <ChatbotAssistant
+                analysis={analysis}
+                documentTitle={documentTitle}
+              />
+            </section>
+          )}
+
+          {/* VIEW 2: UPLOAD & OCR ZONE */}
+          {activeView === "upload" && (
+            <section aria-labelledby="upload-view-heading" className="space-y-6">
+              <div>
+                <h2 id="upload-view-heading" className="text-base font-bold text-white flex items-center gap-2">
+                  <Upload className="w-5 h-5 text-cyan-400" />
+                  Upload Agreement (Text or Scanned Photo)
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Upload text files or photos/scans of rental contracts. Gemini 2.5 Flash Vision transcribes the text, segments clauses, and triggers our deterministic evaluation.
+                </p>
+              </div>
+
+              <DocumentUploadZone
+                onDocumentLoaded={handleUploadedDocument}
+                isLoading={loading}
+              />
+
+              {/* Paste fallback */}
+              <div className="glass-panel rounded-2xl p-5 border border-slate-800/80 space-y-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-indigo-400" />
+                  Or Paste Agreement Text Directly
+                </h3>
+                <textarea
+                  value={agreementText}
+                  onChange={(e) => setAgreementText(e.target.value)}
+                  rows={6}
+                  placeholder="Paste your residential rental / leave-and-license agreement clauses here..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500 resize-y"
+                />
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => {
+                      setCompareData(null);
+                      runAnalysis();
+                      setActiveView("chatbot");
+                    }}
+                    disabled={loading || !agreementText.trim()}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md transition-colors"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {loading ? "Analyzing Document..." : "Analyze & Consult Chatbot"}
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* VIEW 3: CLAUSE INSPECTOR */}
           {activeView === "inspector" && (
             <section aria-labelledby="inspection-heading" className="space-y-4">
-              {/* Inspection Subheader & Filters */}
               <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-slate-800">
                 <div>
                   <h2 id="inspection-heading" className="text-base font-bold text-white flex items-center gap-2">
@@ -400,7 +485,6 @@ export default function HomePage() {
                   </p>
                 </div>
 
-                {/* Filter Pills */}
                 <div className="flex items-center gap-1.5 text-xs">
                   <span className="text-slate-400 text-[11px] mr-1">Filter:</span>
                   <button
@@ -444,7 +528,6 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Clause Cards Stream */}
               <div className="space-y-4">
                 {filteredClauses.map((clause) => (
                   <ClauseCard key={clause.id} clause={clause} />
@@ -453,6 +536,7 @@ export default function HomePage() {
             </section>
           )}
 
+          {/* VIEW 4: BASELINE COMPARE */}
           {activeView === "compare" && (
             <div>
               {compareLoading ? (
@@ -469,17 +553,6 @@ export default function HomePage() {
                   baselineRiskCounts={compareData.baselineRiskCounts}
                 />
               ) : null}
-            </div>
-          )}
-
-          {activeView === "chat" && (
-            <ChatDrawer clauses={analysis ? analysis.clauses : []} />
-          )}
-
-          {/* Bottom Docked Grounded Q&A Drawer (as seen in Nano Banana mockup) */}
-          {activeView !== "chat" && (
-            <div className="pt-4">
-              <ChatDrawer clauses={analysis ? analysis.clauses : []} />
             </div>
           )}
         </main>
