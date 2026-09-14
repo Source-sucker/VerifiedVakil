@@ -6,186 +6,148 @@ import {
   AlertTriangle,
   CheckCircle2,
   ExternalLink,
-  ChevronDown,
-  ChevronUp,
-  FileText,
-  HelpCircle,
   Scale,
   Sparkles,
-  ShieldAlert,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
-import { AnalyzedClause, RiskLevel } from "@/lib/clauseEngine";
+import { AnalyzedClause } from "@/lib/clauseEngine";
 
 interface ClauseCardProps {
   clause: AnalyzedClause;
 }
 
 export default function ClauseCard({ clause }: ClauseCardProps) {
-  const [showOriginal, setShowOriginal] = useState(false);
-
-  const getRiskBadge = (level: RiskLevel) => {
-    switch (level) {
-      case "HIGH_RISK":
-        return {
-          bg: "bg-rose-500/10 border-rose-500/30 text-rose-300",
-          icon: <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" aria-hidden="true" />,
-          label: "High Risk",
-        };
-      case "MODERATE_RISK":
-        return {
-          bg: "bg-amber-500/10 border-amber-500/30 text-amber-300",
-          icon: <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />,
-          label: "Moderate Risk",
-        };
-      case "STANDARD_RISK":
-      default:
-        return {
-          bg: "bg-emerald-500/10 border-emerald-500/30 text-emerald-300",
-          icon: <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" aria-hidden="true" />,
-          label: "Standard / Low Risk",
-        };
-    }
-  };
-
-  const badge = getRiskBadge(clause.riskLevel);
+  const [expanded, setExpanded] = useState(true);
 
   return (
     <article
       id={clause.id}
-      aria-label={`${clause.title} - ${badge.label}`}
-      className={`glass-panel rounded-xl p-5 transition-all duration-200 ${
-        clause.riskLevel === "HIGH_RISK"
-          ? "border-l-4 border-l-rose-500 hover:shadow-rose-950/20"
-          : clause.riskLevel === "MODERATE_RISK"
-          ? "border-l-4 border-l-amber-500"
-          : "border-l-4 border-l-emerald-500"
-      }`}
+      aria-label={`${clause.title} - ${clause.riskLevel}`}
+      className="glass-panel rounded-2xl p-5 border border-slate-800/90 shadow-xl transition-all duration-200 hover:border-slate-700/80"
     >
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
-        <div className="flex items-center gap-2.5">
-          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-slate-300 font-mono text-xs font-semibold">
+      {/* Header bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5 border-b border-slate-800">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-slate-800 text-indigo-400 font-mono text-xs font-bold border border-slate-700">
             #{clause.clauseNumber}
           </span>
           <div>
-            <h3 className="text-base font-semibold text-white flex items-center gap-2">
+            <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               {clause.title}
-              <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-normal">
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-normal border border-slate-700">
                 {clause.category}
               </span>
             </h3>
           </div>
         </div>
 
-        {/* Risk Badge (Icon + Text) */}
-        <div
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-medium ${badge.bg}`}
-        >
-          {badge.icon}
-          <span>{badge.label}</span>
-          <span className="font-mono text-slate-400 text-[11px] ml-1">
-            ({clause.riskScore}/100)
+        {/* 3-Pill Risk Indicator (Low / Medium / High) as seen in Nano Banana design */}
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-mono">
+          <span
+            className={`px-2 py-0.5 rounded-lg transition-colors flex items-center gap-1 ${
+              clause.riskLevel === "STANDARD_RISK"
+                ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40"
+                : "text-slate-500 opacity-60"
+            }`}
+          >
+            <CheckCircle2 className="w-3 h-3" /> Low
+          </span>
+          <span
+            className={`px-2 py-0.5 rounded-lg transition-colors flex items-center gap-1 ${
+              clause.riskLevel === "MODERATE_RISK"
+                ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40"
+                : "text-slate-500 opacity-60"
+            }`}
+          >
+            <AlertTriangle className="w-3 h-3" /> Medium
+          </span>
+          <span
+            className={`px-2 py-0.5 rounded-lg transition-colors flex items-center gap-1 ${
+              clause.riskLevel === "HIGH_RISK"
+                ? "bg-rose-500/20 text-rose-300 font-bold border border-rose-500/40"
+                : "text-slate-500 opacity-60"
+            }`}
+          >
+            <AlertCircle className="w-3 h-3" /> High
           </span>
         </div>
       </div>
 
-      {/* Grid: Plain English Rewrite & Risk Explanation */}
-      <div className="mt-4 space-y-4">
-        {/* Plain Language Rewrite (Gemini) */}
-        <div className="bg-slate-900/60 rounded-lg p-3.5 border border-slate-800/80">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-indigo-400 mb-1.5">
-            <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-            Plain-English Meaning
-          </div>
-          <p className="text-sm text-slate-200 leading-relaxed">
-            {clause.plainRewrite || "Analyzing plain meaning..."}
-          </p>
-        </div>
-
-        {/* Risk Assessment & Why It Matters */}
-        {clause.riskLevel !== "STANDARD_RISK" && (
-          <div className="bg-rose-950/15 border border-rose-500/20 rounded-lg p-3.5">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-400 mb-1.5">
-              <ShieldAlert className="w-3.5 h-3.5" aria-hidden="true" />
-              Risk Analysis & Tenant Impact
+      {/* Side-by-Side Inspection Layout */}
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Left Column: Contract Legalese */}
+        <div className="bg-slate-950/70 rounded-xl p-4 border border-slate-800 flex flex-col justify-between space-y-3">
+          <div>
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-400 mb-2">
+              <span className="uppercase tracking-wider text-[10px] text-slate-400">
+                Original Contract Terms
+              </span>
+              <span className="text-[11px] font-mono text-slate-400">
+                Deterministic Tag: {clause.clauseType}
+              </span>
             </div>
-            <p className="text-xs text-rose-200/90 leading-relaxed">
-              {clause.aiExplanation || clause.riskReason}
+            <p className="text-xs sm:text-sm font-mono text-slate-200 leading-relaxed whitespace-pre-wrap">
+              {clause.rawText}
             </p>
           </div>
-        )}
 
-        {/* Citation Lock Section */}
-        <div className="bg-slate-900/40 rounded-lg p-3 border border-slate-800 text-xs">
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <span className="flex items-center gap-1.5 font-semibold text-slate-300">
-              <Scale className="w-3.5 h-3.5 text-sky-400" aria-hidden="true" />
-              Verified Statutory Citation (India Code)
-            </span>
-            {clause.citation && (
-              <span className="text-[11px] text-slate-400">
-                Verified: {clause.citation.last_verified}
-              </span>
-            )}
-          </div>
-
+          {/* Statutory Citation Badge on Contract */}
           {clause.citation ? (
-            <div className="mt-1 space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-sky-300">
-                  {clause.citation.law}
-                </span>
-                <span className="px-1.5 py-0.5 rounded bg-sky-950/80 text-sky-400 font-mono text-[11px] border border-sky-800/50">
-                  {clause.citation.section_ref}
-                </span>
-                <a
-                  href={clause.citation.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-slate-400 hover:text-sky-300 transition-colors text-[11px] underline underline-offset-2 ml-auto"
-                >
-                  View Official Act <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-              <p className="text-slate-400 text-[11px] leading-relaxed">
-                {clause.citation.plain_explanation}
-              </p>
+            <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 text-xs flex-wrap">
+              <span className="flex items-center gap-1.5 text-sky-400 font-mono text-[11px]">
+                <Scale className="w-3.5 h-3.5 shrink-0" />
+                Verified: {clause.citation.section_ref}, {clause.citation.law}
+              </span>
+              <a
+                href={clause.citation.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-sky-300 text-[11px] underline underline-offset-2 flex items-center gap-1 transition-colors"
+              >
+                India Code <ExternalLink className="w-3 h-3" />
+              </a>
             </div>
           ) : (
-            <p className="text-slate-400 text-[11px] italic">
-              No verified statutory reference exists in our curated database for this clause type. Refusing to speculate; verify with a qualified advocate.
-            </p>
+            <div className="pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 italic">
+              No verified statutory reference in database.
+            </div>
           )}
         </div>
 
-        {/* Recommended Action / Question for Landlord */}
-        {clause.suggestedAction && (
-          <div className="flex items-start gap-2 text-xs bg-indigo-950/20 border border-indigo-500/20 rounded-lg p-3 text-indigo-200">
-            <HelpCircle className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" aria-hidden="true" />
-            <div>
-              <strong className="text-indigo-300 font-semibold block mb-0.5">
-                Suggested Action / Question to Ask Landlord:
-              </strong>
-              <span>{clause.suggestedAction}</span>
+        {/* Right Column: Plain-English Rewrite & Tenant Negotiation Action */}
+        <div className="bg-slate-900/80 rounded-xl p-4 border border-indigo-500/20 flex flex-col justify-between space-y-3">
+          <div>
+            <div className="flex items-center justify-between text-xs font-semibold text-indigo-400 mb-2">
+              <span className="flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
+                <Sparkles className="w-3 h-3 text-indigo-400" />
+                Plain-English Rewrite (Gemini AI)
+              </span>
+              <span className="text-[11px] font-mono text-indigo-300">
+                Risk Score: {clause.riskScore}/100
+              </span>
             </div>
+            <p className="text-xs sm:text-sm text-slate-100 leading-relaxed">
+              {clause.plainRewrite || "Analyzing plain language meaning..."}
+            </p>
+
+            {/* Risk Explanation if flagged */}
+            {clause.riskLevel !== "STANDARD_RISK" && (
+              <div className="mt-3 p-2.5 rounded-lg bg-rose-950/30 border border-rose-500/30 text-xs text-rose-200">
+                <strong>Why this is flagged:</strong> {clause.aiExplanation || clause.riskReason}
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Toggle Original Text Accordion */}
-        <div className="pt-1">
-          <button
-            onClick={() => setShowOriginal(!showOriginal)}
-            className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 transition-colors"
-            aria-expanded={showOriginal}
-          >
-            <FileText className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>{showOriginal ? "Hide Original Contract Wording" : "View Original Contract Wording"}</span>
-            {showOriginal ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          </button>
-
-          {showOriginal && (
-            <div className="mt-2 p-3 rounded bg-black/40 border border-slate-800 text-xs font-mono text-slate-300 whitespace-pre-wrap leading-relaxed">
-              {clause.rawText}
+          {/* Tenant Negotiation & Discussion Action */}
+          {clause.suggestedAction && (
+            <div className="pt-2 border-t border-indigo-500/20 flex items-start gap-2 text-xs text-indigo-200">
+              <HelpCircle className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-indigo-300">Suggested Discussion Point:</strong>{" "}
+                <span>{clause.suggestedAction}</span>
+              </div>
             </div>
           )}
         </div>
