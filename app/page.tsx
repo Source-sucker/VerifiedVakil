@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Scale,
   ShieldCheck,
@@ -36,6 +36,7 @@ import LatencyBadge from "@/components/LatencyBadge";
 import RadialGauge from "@/components/RadialGauge";
 import Sidebar, { NavView } from "@/components/Sidebar";
 import IPLKnowledgeBank from "@/components/IPLKnowledgeBank";
+import ApiKeyModal from "@/components/ApiKeyModal";
 
 export default function HomePage() {
   const [agreementText, setAgreementText] = useState("");
@@ -55,6 +56,104 @@ export default function HomePage() {
   const [compareLoading, setCompareLoading] = useState(false);
   const [selectedBench, setSelectedBench] = useState<string>("aggressive");
   const [selectedClauseToAsk, setSelectedClauseToAsk] = useState<AnalyzedClause | null>(null);
+
+  const bannerFileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [bannerOcrStatus, setBannerOcrStatus] = useState<string | null>(null);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [apiStatus, setApiStatus] = useState<"connected" | "offline" | "checking">("checking");
+
+  useEffect(() => {
+    // Check initial API status
+    const clientKey = typeof window !== "undefined" ? localStorage.getItem("gemini_api_key") || undefined : undefined;
+    fetch("/api/test-gemini", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ apiKey: clientKey }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setApiStatus(data.success ? "connected" : "offline");
+      })
+      .catch(() => setApiStatus("offline"));
+  }, []);
+
+  const handleApiKeySaved = (key: string) => {
+    if (!key) {
+      setApiStatus("offline");
+      return;
+    }
+    setApiStatus("checking");
+    fetch("/api/test-gemini", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ apiKey: key }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setApiStatus(data.success ? "connected" : "offline");
+      })
+      .catch(() => setApiStatus("offline"));
+  };
+
+  const handleBannerFile = async (file: File) => {
+    if (!file) return;
+
+    if (file.type === "text/plain" || file.name.endsWith(".txt")) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const text = e.target?.result as string;
+        if (text) {
+          await handleUploadedDocument(text, file.name);
+        }
+      };
+      reader.readAsText(file);
+      return;
+    }
+
+    if (file.type.startsWith("image/") || file.name.match(/\.(png|jpg|jpeg|webp)$/i)) {
+      setBannerOcrStatus(`Running OCR on ${file.name}...`);
+      try {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const resultStr = e.target?.result as string;
+          const base64Data = resultStr.split(",")[1];
+          const mimeType = file.type || "image/jpeg";
+          const clientApiKey = typeof window !== "undefined" ? localStorage.getItem("gemini_api_key") || "" : "";
+
+          const res = await fetch("/api/ocr", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(clientApiKey ? { "x-gemini-api-key": clientApiKey } : {}),
+            },
+            body: JSON.stringify({ base64Data, mimeType }),
+          });
+
+          const data = await res.json();
+          if (data.success && data.text && !data.text.startsWith("No readable legal text")) {
+            setBannerOcrStatus(`OCR complete (${data.latencyMs || 450}ms)! Auditing clauses...`);
+            setTimeout(async () => {
+              await handleUploadedDocument(data.text, `Scanned: ${file.name}`);
+              setBannerOcrStatus(null);
+            }, 500);
+          } else {
+            setBannerOcrStatus(
+              data.text && data.text.startsWith("No readable legal text")
+                ? data.text
+                : "Could not extract readable legal text from this image. Please upload a clear photo."
+            );
+            setTimeout(() => setBannerOcrStatus(null), 5000);
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (err) {
+        console.error("Banner OCR error:", err);
+        setBannerOcrStatus("Error during OCR. Please paste text directly.");
+        setTimeout(() => setBannerOcrStatus(null), 3000);
+      }
+    }
+  };
 
   // Load sample agreement
   const loadSample = async (fileName: string, benchKey: string, title: string) => {
@@ -241,6 +340,34 @@ export default function HomePage() {
 
             {/* Right: Badges, Latency, Export Advice, User Avatar */}
             <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsApiKeyModalOpen(true)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border transition-all ${
+                  apiStatus === "connected"
+                    ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/50"
+                    : "bg-slate-900/80 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
+                }`}
+                title="Click to configure Gemini API Key or test reasoning engine connection"
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    apiStatus === "connected"
+                      ? "bg-emerald-400 animate-pulse"
+                      : apiStatus === "checking"
+                      ? "bg-cyan-400 animate-ping"
+                      : "bg-amber-400"
+                  }`}
+                />
+                <span>
+                  {apiStatus === "connected"
+                    ? "Gemini 3.6 Flash Active"
+                    : apiStatus === "checking"
+                    ? "Testing AI Engine..."
+                    : "Local Grounded Engine (Configure API)"}
+                </span>
+              </button>
+
               <span className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-cyan-950/60 text-cyan-300 border border-cyan-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                 Karnataka MTA Grounded
@@ -274,6 +401,30 @@ export default function HomePage() {
         <main className="flex-1 p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] w-full mx-auto">
           {/* Ingest Residential Tenancy Draft Banner (Screenshot 1) */}
           <div className="glass-panel p-4 sm:p-5 rounded-3xl border border-slate-800/90 bg-[#090d16] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+            <input
+              ref={bannerFileInputRef}
+              type="file"
+              accept=".pdf,.txt,.png,.jpg,.jpeg,.webp"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleBannerFile(e.target.files[0]);
+                }
+              }}
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleBannerFile(e.target.files[0]);
+                }
+              }}
+            />
+
             <div className="flex items-start sm:items-center gap-3.5">
               <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
                 <Upload className="w-5 h-5" />
@@ -284,25 +435,33 @@ export default function HomePage() {
                     Ingest Residential Tenancy Draft
                   </h3>
                   <span className="px-2 py-0.5 rounded-md bg-indigo-950 text-indigo-300 border border-indigo-500/30 text-[10px] font-mono">
-                    Gemini 2.5 Flash Multimodal OCR
+                    Multimodal OCR &amp; Grounded Audit
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Drag &amp; drop PDF, scanned image stacks, or DOCX. Full support for vernacular Kannada, Tamil, Hindi, and English bilingual agreements.
+                  Upload PDF, scanned images, or document photos. Full support for English and vernacular Indian tenancy drafts.
                 </p>
+                {bannerOcrStatus && (
+                  <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-cyan-950/70 border border-cyan-500/40 text-cyan-300 text-xs font-mono animate-pulse">
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>{bannerOcrStatus}</span>
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={() => setActiveView("upload")}
+                type="button"
+                onClick={() => cameraInputRef.current?.click()}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
               >
                 <Camera className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Camera Scan</span>
               </button>
               <button
-                onClick={() => setActiveView("upload")}
+                type="button"
+                onClick={() => bannerFileInputRef.current?.click()}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-md shadow-indigo-600/30 transition-colors"
               >
                 <FileText className="w-3.5 h-3.5" />
@@ -723,6 +882,13 @@ export default function HomePage() {
           safetyScore={analysis.safetyScore}
         />
       )}
+
+      {/* AI Reasoning Engine & Gemini Key Modal */}
+      <ApiKeyModal
+        isOpen={isApiKeyModalOpen}
+        onClose={() => setIsApiKeyModalOpen(false)}
+        onKeySaved={handleApiKeySaved}
+      />
     </div>
   );
 }

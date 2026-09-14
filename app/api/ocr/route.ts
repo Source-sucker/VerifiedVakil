@@ -13,7 +13,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = await performOCRWithGemini(base64Data, mimeType);
+    const clientApiKey = req.headers.get("x-gemini-api-key") || body.apiKey || undefined;
+    const result = await performOCRWithGemini(base64Data, mimeType, clientApiKey);
 
     return NextResponse.json({
       success: true,

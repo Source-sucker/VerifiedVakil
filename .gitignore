@@ -54,3 +54,4 @@ videos/
 tmp/
 temp/
 *.tsbuildinfo
+*.traineddata

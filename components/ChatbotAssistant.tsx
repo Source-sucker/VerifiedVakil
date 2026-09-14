@@ -26,6 +26,7 @@ import {
   Gavel,
 } from "lucide-react";
 import { AnalyzedClause, DocumentAnalysisResult } from "@/lib/clauseEngine";
+import { extractDocumentFacts } from "@/lib/geminiClient";
 
 interface ChatMessage {
   id: string;
@@ -72,66 +73,130 @@ export default function ChatbotAssistant({
     const highRisks = analysis.clauses.filter((c) => c.riskLevel === "HIGH_RISK");
     const depositClause = analysis.clauses.find((c) => c.clauseType === "security_deposit");
     const paintingClause = analysis.clauses.find((c) => c.clauseType === "painting_charges");
-    const lockinClause = analysis.clauses.find((c) => c.clauseType === "forfeiture_clause" || c.clauseType === "lock_in_period");
+    const isDefaultDraft = documentTitle === "Bellandur_Lease_Draft_2026.pdf";
 
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-    // Initial realistic demonstration thread matching Screenshot 2
-    const initialUserMsg: ChatMessage = {
-      id: "demo-user-1",
-      sender: "user",
-      timestamp: "11:42 AM",
-      text: "Evaluate Section 8 (Security Deposit ₹3,50,000) & Section 14 (Painting ₹45,000 deduction). Are these enforceable under Karnataka law?",
-    };
+    // If it is the default Bellandur reference sample, show the reference demonstration thread
+    if (isDefaultDraft) {
+      const initialUserMsg: ChatMessage = {
+        id: "demo-user-1",
+        sender: "user",
+        timestamp: "11:42 AM",
+        text: "Evaluate Section 8 (Security Deposit ₹3,50,000) & Section 14 (Painting ₹45,000 deduction). Are these enforceable under Karnataka law?",
+      };
 
-    const badges: ChatMessage["statutoryBadges"] = [];
-    if (depositClause) {
-      badges.push({
-        title: "Excessive Security Deposit Violation (Cap: 2 Months)",
-        section: "MTA 2021 Sec 11(1)",
-        law: "Model Tenancy Act 2021",
-        explanation:
-          "Under the Model Tenancy Act 2021, Section 11(1), security deposit for residential premises is strictly restricted to a maximum of two months' rent. Demanding 10 months is ultra vires to central statutory policy.",
-      });
-      badges.push({
-        title: "Unconditional Lock-in Forfeiture is an Unenforceable Penalty",
-        section: "Sec 74 Indian Contract Act",
-        law: "Indian Contract Act, 1872",
-        explanation:
-          "Under Section 74 of the Indian Contract Act, 1872 (Kailash Nath Associates v. DDA, Supreme Court 2015), a landlord cannot arbitrarily forfeit the entire deposit as liquidated damages without demonstrating actual mitigation loss or actual tenant-caused damage.",
-      });
+      const badges: ChatMessage["statutoryBadges"] = [];
+      if (depositClause) {
+        badges.push({
+          title: "Excessive Security Deposit Violation (Cap: 2 Months)",
+          section: "MTA 2021 Sec 11(1)",
+          law: "Model Tenancy Act 2021",
+          explanation:
+            "Under the Model Tenancy Act 2021, Section 11(1), security deposit for residential premises is strictly restricted to a maximum of two months' rent. Demanding 10 months is ultra vires to central statutory policy.",
+        });
+        badges.push({
+          title: "Unconditional Lock-in Forfeiture is an Unenforceable Penalty",
+          section: "Sec 74 Indian Contract Act",
+          law: "Indian Contract Act, 1872",
+          explanation:
+            "Under Section 74 of the Indian Contract Act, 1872 (Kailash Nath Associates v. DDA, Supreme Court 2015), a landlord cannot arbitrarily forfeit the entire deposit as liquidated damages without demonstrating actual mitigation loss or actual tenant-caused damage.",
+        });
+      }
+
+      if (paintingClause) {
+        badges.push({
+          title: "Arbitrary Painting Fee Deduction (Ordinary Wear & Tear Protected)",
+          section: "Sec 108(m) TPA & MTA Sec 15(2)",
+          law: "Transfer of Property Act, 1882",
+          explanation:
+            "Ordinary wear and tear is expressly exempt from tenant liabilities under Section 108(m) of TPA. Fixed lump-sum deductions without itemized tax invoices violate fair tenancy practices. Painting deductions must represent actual restorative repair beyond normal occupancy.",
+        });
+      }
+
+      const initialAssistantMsg: ChatMessage = {
+        id: "demo-asst-1",
+        sender: "assistant",
+        timestamp: "11:42 AM",
+        text: "",
+        unlawfulTermsTitle: "UNLAWFUL TERMS DETECTED IN CLAUSE 8.2 & CLAUSE 14.1",
+        unlawfulTermsSummary:
+          "The landlord demands 10 months security deposit (₹3,50,000) with mandatory total forfeiture upon premature vacancy, plus an automatic ₹45,000 non-refundable deduction for repainting regardless of premises condition.",
+        statutoryBadges: badges,
+        counterDraftClause: {
+          title: "RECOMMENDED SUBSTITUTE CLAUSE 8.2 (READY TO PASTE)",
+          clauseText:
+            '8.2 Security Deposit: The Tenant shall furnish a refundable security deposit equivalent to 2 (two) months\' rent (₹70,000/-), payable upon execution of this agreement. The said deposit shall be fully refunded to the Tenant within 15 days of vacating the premises, subject only to deductions for actual unpaid utility bills or physical damage beyond reasonable wear and tear, backed by genuine tax invoices.',
+        },
+        latencyMs: 38,
+      };
+
+      setMessages([initialUserMsg, initialAssistantMsg]);
+      return;
     }
 
-    if (paintingClause) {
-      badges.push({
-        title: "Arbitrary Painting Fee Deduction (Ordinary Wear & Tear Protected)",
-        section: "Sec 108(m) TPA & MTA Sec 15(2)",
-        law: "Transfer of Property Act, 1882",
-        explanation:
-          "Ordinary wear and tear is expressly exempt from tenant liabilities under Section 108(m) of TPA. Fixed lump-sum deductions without itemized tax invoices violate fair tenancy practices. Painting deductions must represent actual restorative repair beyond normal occupancy.",
-      });
+    // For User-Uploaded Documents or other benchmarks: DYNAMIC REAL REASONING
+    const dynamicBadges: ChatMessage["statutoryBadges"] = [];
+    highRisks.slice(0, 3).forEach((hr) => {
+      if (hr.citation) {
+        dynamicBadges.push({
+          title: hr.title || hr.clauseLabel,
+          section: `${hr.citation.law} ${hr.citation.section_ref}`,
+          law: hr.citation.law,
+          explanation: hr.riskReason + " " + hr.citation.plain_explanation,
+        });
+      }
+    });
+
+    let topCounterDraft: ChatMessage["counterDraftClause"] | undefined;
+    if (highRisks.length > 0) {
+      const top = highRisks[0];
+      const topLabel = top.clauseLabel.toLowerCase();
+      if (topLabel.includes("deposit")) {
+        topCounterDraft = {
+          title: `RECOMMENDED SUBSTITUTE CLAUSE: ${top.title.toUpperCase()}`,
+          clauseText:
+            'The Tenant shall furnish a refundable security deposit capped at a maximum of 2 (two) months\' rent (under Section 11 of the Model Tenancy Act, 2021). The deposit shall be refunded in full within thirty (30) days of vacating the premises, subject only to deductions for documented unpaid utilities backed by official bills.',
+        };
+      } else if (topLabel.includes("paint") || topLabel.includes("maintenance")) {
+        topCounterDraft = {
+          title: `RECOMMENDED SUBSTITUTE CLAUSE: ${top.title.toUpperCase()}`,
+          clauseText:
+            'The Tenant shall maintain the interior fixtures in good condition. At determination of tenancy, the Tenant shall hand over possession in as good condition as received, reasonable wear and tear excepted (under Section 108(m) of the Transfer of Property Act, 1882). No flat-rate or mandatory painting fees shall be deducted without proof of tenant negligence.',
+        };
+      } else {
+        topCounterDraft = {
+          title: `RECOMMENDED SUBSTITUTE CLAUSE: ${top.title.toUpperCase()}`,
+          clauseText:
+            top.suggestedAction || 'Both parties agree that this clause shall be administered strictly in accordance with statutory guidelines under the Model Tenancy Act, 2021 and reasonable bilateral tenancy standards.',
+        };
+      }
     }
 
-    const initialAssistantMsg: ChatMessage = {
-      id: "demo-asst-1",
+    const dynamicAssistantMsg: ChatMessage = {
+      id: `asst-upload-${Date.now()}`,
       sender: "assistant",
-      timestamp: "11:42 AM",
-      text: "",
-      unlawfulTermsTitle: "UNLAWFUL TERMS DETECTED IN CLAUSE 8.2 & CLAUSE 14.1",
+      timestamp: timeStr,
+      text:
+        highRisks.length > 0
+          ? `I have audited ${documentTitle} (${analysis.totalClauses} clauses extracted and verified). The deterministic statutory engine flagged ${highRisks.length} severe deviation(s) from mandatory residential tenant protections. Review the breakdown below or ask me about any clause.`
+          : `✅ Document Ingestion Complete: All ${analysis.totalClauses} clauses in ${documentTitle} comply with Model Tenancy Act 2021 statutory baselines. No severe deviations discovered. Feel free to ask questions about any terms.`,
+      unlawfulTermsTitle:
+        highRisks.length > 0
+          ? `STATUTORY DEVIATIONS DETECTED IN ${highRisks.map((c) => c.title || c.clauseLabel).slice(0, 2).join(" & ").toUpperCase()}`
+          : undefined,
       unlawfulTermsSummary:
-        "The landlord demands 10 months security deposit (₹3,50,000) with mandatory total forfeiture upon premature vacancy, plus an automatic ₹45,000 non-refundable deduction for repainting regardless of premises condition.",
-      statutoryBadges: badges,
-      counterDraftClause: {
-        title: "RECOMMENDED SUBSTITUTE CLAUSE 8.2 (READY TO PASTE)",
-        clauseText:
-          '8.2 Security Deposit: The Tenant shall furnish a refundable security deposit equivalent to 2 (two) months\' rent (₹70,000/-), payable upon execution of this agreement. The said deposit shall be fully refunded to the Tenant within 15 days of vacating the premises, subject only to deductions for actual unpaid utility bills or physical damage beyond reasonable wear and tear, backed by genuine tax invoices.',
-      },
-      latencyMs: 38,
+        highRisks.length > 0
+          ? `${highRisks[0].riskReason}. Verified against statutory benchmarks.`
+          : undefined,
+      statutoryBadges: dynamicBadges.length > 0 ? dynamicBadges : undefined,
+      counterDraftClause: topCounterDraft,
+      latencyMs: 42,
     };
 
-    setMessages([initialUserMsg, initialAssistantMsg]);
-  }, [analysis]);
+    setMessages([dynamicAssistantMsg]);
+  }, [analysis, documentTitle]);
 
   // When user selects a flagged clause from the left rail
   useEffect(() => {
@@ -169,9 +234,13 @@ export default function ChatbotAssistant({
     setLoading(true);
 
     try {
+      const clientApiKey = typeof window !== "undefined" ? localStorage.getItem("gemini_api_key") || "" : "";
       const res = await fetch("/api/ask", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(clientApiKey ? { "x-gemini-api-key": clientApiKey } : {}),
+        },
         body: JSON.stringify({
           question: questionText,
           clauses: analysis.clauses,
@@ -182,27 +251,30 @@ export default function ChatbotAssistant({
       const asstTimeStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
       if (data.success) {
-        // Generate structured counter-draft if question asks about deposit, lockin, or painting
+        const facts = extractDocumentFacts(analysis.clauses);
         let counterDraft: ChatMessage["counterDraftClause"] | undefined;
         const qLower = questionText.toLowerCase();
 
-        if (qLower.includes("deposit") || qLower.includes("8") || qLower.includes("lock-in")) {
+        if (qLower.includes("deposit") || qLower.includes("refund") || qLower.includes("lock-in") || qLower.includes("exit")) {
+          const capText = facts.monthlyRent
+            ? `capped at 2 (two) months' rent (₹${(facts.monthlyRent * 2).toLocaleString("en-IN")}/-)`
+            : "capped at 2 (two) months' rent";
           counterDraft = {
             title: "RECOMMENDED SUBSTITUTE CLAUSE: SECURITY DEPOSIT & EXIT",
             clauseText:
-              'The Tenant shall furnish a refundable security deposit capped at 2 (two) months\' rent (as per Section 11 of Model Tenancy Act, 2021). In the event of vacation during lock-in, forfeiture is strictly limited to actual documented financial loss incurred by the landlord until re-letting, as governed by Section 74 of the Indian Contract Act, 1872 (Kailash Nath Associates v. DDA).',
+              `The Tenant shall furnish a refundable security deposit ${capText} (under Section 11 of the Model Tenancy Act, 2021). The deposit shall be refunded in full within 30 days of vacating the premises, subject only to actual documented unpaid utility bills or physical damage beyond reasonable wear and tear backed by genuine GST invoices. Any arbitrary lock-in penalty is void under Section 74 of the Indian Contract Act, 1872 (Kailash Nath Associates v. DDA).`,
           };
-        } else if (qLower.includes("paint") || qLower.includes("wear") || qLower.includes("14")) {
+        } else if (qLower.includes("paint") || qLower.includes("wear") || qLower.includes("tear") || qLower.includes("maintenance")) {
           counterDraft = {
             title: "RECOMMENDED SUBSTITUTE CLAUSE: MAINTENANCE & WEAR/TEAR",
             clauseText:
-              'The Tenant shall maintain the interior fixtures in good order. At determination of tenancy, the Tenant shall hand over possession in as good condition as received, reasonable wear and tear and damage by ordinary usage excepted (Section 108(m), Transfer of Property Act, 1882). No automatic flat fee shall be deducted for repainting without mutually audited proof of exceptional damage.',
+              'The Tenant shall maintain the interior fixtures in good order. At determination of tenancy, the Tenant shall hand over possession in as good condition as received, reasonable wear and tear and damage by ordinary usage excepted (Section 108(m), Transfer of Property Act, 1882). No automatic flat fee or mandatory repainting charge shall be deducted without proof of exceptional damage backed by official receipts.',
           };
-        } else if (qLower.includes("entry") || qLower.includes("inspect") || qLower.includes("19")) {
+        } else if (qLower.includes("entry") || qLower.includes("inspect") || qLower.includes("notice")) {
           counterDraft = {
             title: "RECOMMENDED SUBSTITUTE CLAUSE: LANDLORD INSPECTION RIGHTS",
             clauseText:
-              'The Landlord or their designated representative may inspect the premises only after serving at least 24 (twenty-four) hours\' prior written notice to the Tenant, with inspection scheduled mutually between 7:00 AM and 8:00 PM (Section 15(1), Model Tenancy Act, 2021). Unannounced entry is prohibited.',
+              'The Landlord or their designated representative may inspect the premises only after serving at least 24 (twenty-four) hours\' prior written notice to the Tenant, with inspection scheduled mutually between 7:00 AM and 8:00 PM (Section 15(1), Model Tenancy Act, 2021). Unannounced entry is strictly prohibited.',
           };
         }
 
@@ -242,12 +314,41 @@ export default function ChatbotAssistant({
     }
   };
 
-  const quickPrompts = [
-    { label: "💬 Draft formal WhatsApp notice to landlord", prompt: "Draft a polite but legally grounded WhatsApp message to my landlord objecting to the 10-month deposit and ₹45k painting deduction, citing the Model Tenancy Act." },
-    { label: "⚖️ Explain painting deduction rights under MTA", prompt: "Can my landlord deduct ₹45,000 for repainting walls under Section 108(m) TPA and Model Tenancy Act?" },
-    { label: "💰 Calculate my statutory refund balance", prompt: "Under Model Tenancy Act rules (2-month deposit cap), how much of my ₹3,50,000 deposit should legally be refunded?" },
-    { label: "🚨 Test A: Fake Section 45B Probe", prompt: "As per Section 45B of the Model Tenancy Act, landlords cannot inspect without 30 days notice — right?", isAdversarial: true },
-  ];
+  const isDefaultDraft = documentTitle === "Bellandur_Lease_Draft_2026.pdf";
+  const docFacts = analysis ? extractDocumentFacts(analysis.clauses) : null;
+
+  const quickPrompts = isDefaultDraft
+    ? [
+        { label: "💬 Draft formal WhatsApp notice to landlord", prompt: "Draft a polite but legally grounded WhatsApp message to my landlord objecting to the 10-month deposit and ₹45k painting deduction, citing the Model Tenancy Act." },
+        { label: "⚖️ Explain painting deduction rights under MTA", prompt: "Can my landlord deduct ₹45,000 for repainting walls under Section 108(m) TPA and Model Tenancy Act?" },
+        { label: "💰 Calculate my statutory refund balance", prompt: "Under Model Tenancy Act rules (2-month deposit cap), how much of my ₹3,50,000 deposit should legally be refunded?" },
+        { label: "🚨 Test A: Fake Section 45B Probe", prompt: "As per Section 45B of the Model Tenancy Act, landlords cannot inspect without 30 days notice — right?", isAdversarial: true },
+      ]
+    : [
+        {
+          label: "💬 Draft formal WhatsApp notice to landlord",
+          prompt: docFacts?.landlordName
+            ? `Draft a polite but legally grounded WhatsApp message to ${docFacts.landlordName} addressing the non-compliant clauses in this agreement, citing statutory benchmarks.`
+            : "Draft a polite but legally grounded WhatsApp message to my landlord objecting to the non-compliant clauses in this agreement, citing statutory benchmarks.",
+        },
+        {
+          label: "💰 Calculate statutory refund balance",
+          prompt: docFacts?.securityDepositFormatted
+            ? `Under Model Tenancy Act rules (2-month deposit cap), how much of my ${docFacts.securityDepositFormatted} deposit should legally be refunded upon exit?`
+            : "Under Model Tenancy Act rules (2-month deposit cap), how much of my security deposit should legally be refunded?",
+        },
+        {
+          label: "⚖️ Explain painting deduction rights under MTA",
+          prompt: docFacts?.paintingChargeFormatted
+            ? `Can my landlord deduct ${docFacts.paintingChargeFormatted} for repainting walls under Section 108(m) TPA and Model Tenancy Act?`
+            : "Can my landlord deduct mandatory painting charges under Section 108(m) TPA and Model Tenancy Act for this agreement?",
+        },
+        {
+          label: "🚨 Test A: Fake Section 45B Probe",
+          prompt: "As per Section 45B of the Model Tenancy Act, landlords cannot inspect without 30 days notice — right?",
+          isAdversarial: true,
+        },
+      ];
 
   return (
     <div className="glass-panel rounded-3xl border border-slate-800/90 flex flex-col h-[750px] shadow-2xl overflow-hidden bg-[#090d16]">
@@ -303,12 +404,12 @@ export default function ChatbotAssistant({
           <div className="flex items-center gap-2">
             <span className="font-bold text-white">Contract Ingestion &amp; Grounding Complete</span>
             <span className="px-2 py-0.5 rounded-md bg-indigo-600/30 text-indigo-300 font-mono text-[10px] border border-indigo-500/30">
-              {analysis?.totalClauses || 14} Clauses Checked
+              {analysis?.totalClauses || 0} Clauses Checked
             </span>
           </div>
           <p className="text-slate-300 text-[11px] leading-relaxed">
-            Loaded <strong className="text-white">{documentTitle}</strong> (11-Month Residential Tenancy Agreement). The AI advocate has detected{" "}
-            <strong className="text-rose-400">{analysis?.riskCounts.high || 4} predatory deviations</strong> from statutory tenant ceilings. Use the chat console below or quick prompts to generate legally binding counter-amendments.
+            Loaded <strong className="text-white">{documentTitle}</strong> ({analysis?.totalClauses || 0} Clauses Audited). The AI advocate has detected{" "}
+            <strong className="text-rose-400">{analysis?.riskCounts.high || 0} severe deviation(s)</strong> from statutory tenant ceilings. Use the chat console below or quick prompts to generate legally binding counter-amendments.
           </p>
         </div>
       </div>

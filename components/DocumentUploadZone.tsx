@@ -55,22 +55,30 @@ export default function DocumentUploadZone({
           const base64Data = resultStr.split(",")[1];
           const mimeType = file.type || "image/jpeg";
 
+          const clientApiKey = typeof window !== "undefined" ? localStorage.getItem("gemini_api_key") || "" : "";
           const res = await fetch("/api/ocr", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              ...(clientApiKey ? { "x-gemini-api-key": clientApiKey } : {}),
+            },
             body: JSON.stringify({ base64Data, mimeType }),
           });
 
           const data = await res.json();
-          if (data.success && data.text) {
-            setOcrStatus(`OCR complete in ${data.latencyMs || 450}ms! Analyzing clauses...`);
+          if (data.success && data.text && !data.text.startsWith("No readable legal text")) {
+            setOcrStatus(`OCR complete in ${data.latencyMs || 450}ms (${data.text.length} chars extracted)! Auditing clauses...`);
             setTimeout(() => {
               onDocumentLoaded(data.text, `Scanned: ${file.name}`);
               setOcrProcessing(false);
               setOcrStatus(null);
-            }, 600);
+            }, 500);
           } else {
-            setOcrStatus("OCR could not transcribe text. Please upload plain text.");
+            setOcrStatus(
+              data.text && data.text.startsWith("No readable legal text")
+                ? data.text
+                : "Could not extract readable legal text from this image. Please ensure it is sharp, or paste text."
+            );
             setOcrProcessing(false);
           }
         };
