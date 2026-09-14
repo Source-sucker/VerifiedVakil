@@ -72,14 +72,16 @@ export default function Sidebar({
             <Scale className="w-5 h-5 text-white" aria-hidden="true" />
           </div>
           <div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-base font-extrabold tracking-tight text-white">
                 VerifiedVakil
               </span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-500/40 font-bold">
+                AI SENTINEL
+              </span>
             </div>
-            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-              Tenant Protection Portal
+            <p className="text-[10px] text-slate-400 font-medium">
+              Tenant Legal Intelligence Platform
             </p>
           </div>
         </div>
@@ -122,18 +124,21 @@ export default function Sidebar({
         </nav>
       </div>
 
-      {/* Bottom Status Card */}
-      <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-2">
+      {/* Bottom Status Card matching Screenshot 1 */}
+      <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-2.5">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-slate-400 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-            Citation Lock
+          <span className="text-slate-300 flex items-center gap-1.5 text-[11px] font-semibold">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            Citation-Lock: 100% Active
           </span>
-          <span className="text-[10px] font-mono text-emerald-400">100% Active</span>
         </div>
-        <p className="text-[11px] text-slate-400 leading-snug">
-          Deterministic code evaluates risk; Gemini explains facts only.
+        <p className="text-[10px] text-slate-400 leading-snug">
+          India Code &amp; State Law Grounded
         </p>
+        <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+          <span className="font-semibold text-slate-200">Bengaluru, KA</span>
+          <span className="text-[10px] text-cyan-400 font-mono">Karnataka MTA</span>
+        </div>
       </div>
     </aside>
   );
