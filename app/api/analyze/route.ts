@@ -34,7 +34,8 @@ export async function POST(req: NextRequest) {
               clause.rawText,
               clause.riskScore,
               clause.riskReason,
-              clause.citation
+              clause.citation,
+              clause.precedent
             ),
           ]);
 

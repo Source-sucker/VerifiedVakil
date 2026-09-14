@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
         rawText: sc.clause.rawText,
         clauseLabel: sc.clause.clauseLabel,
         citation: sc.clause.citation,
+        precedent: sc.clause.precedent,
       }));
 
     const result = await askDocumentQuestionWithAI(question, topClauses);

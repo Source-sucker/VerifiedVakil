@@ -1,5 +1,10 @@
 import taxonomyData from "./clauseTaxonomy.json";
-import { lookupCitation, VerifiedCitation } from "./citationLookup";
+import {
+  lookupCitation,
+  lookupPrecedent,
+  VerifiedCitation,
+  VerifiedPrecedent,
+} from "./citationLookup";
 
 export type RiskLevel = "HIGH_RISK" | "MODERATE_RISK" | "STANDARD_RISK";
 
@@ -31,6 +36,7 @@ export interface AnalyzedClause {
   riskReason: string;
   extractedValues: ExtractedValues;
   citation: VerifiedCitation | null;
+  precedent: VerifiedPrecedent | null;
   plainRewrite?: string;
   aiExplanation?: string;
   suggestedAction?: string;
@@ -453,6 +459,7 @@ export function analyzeDocument(rawText: string): DocumentAnalysisResult {
     const extracted = extractClauseValues(rawClause, globalRent);
     const risk = evaluateRisk(classification.clauseType, extracted, rawClause);
     const citation = lookupCitation(classification.clauseType);
+    const precedent = lookupPrecedent(classification.clauseType);
 
     if (risk.riskLevel === "HIGH_RISK") highCount++;
     else if (risk.riskLevel === "MODERATE_RISK") moderateCount++;
@@ -477,6 +484,8 @@ export function analyzeDocument(rawText: string): DocumentAnalysisResult {
       riskReason: risk.riskReason,
       extractedValues: extracted,
       citation,
+      precedent,
+      suggestedAction: precedent?.discussion_phrase,
     });
   }
 

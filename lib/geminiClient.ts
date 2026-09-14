@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { VerifiedCitation } from "./citationLookup";
+import { VerifiedCitation, VerifiedPrecedent } from "./citationLookup";
 
 const apiKey = process.env.GEMINI_API_KEY || "";
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
@@ -179,18 +179,24 @@ export async function explainRiskWithAI(
   clauseText: string,
   riskScore: number,
   riskReason: string,
-  citation: VerifiedCitation | null
+  citation: VerifiedCitation | null,
+  precedent?: VerifiedPrecedent | null
 ): Promise<{ explanation: string; suggestedAction: string; latencyMs: number }> {
   const start = Date.now();
 
-  const citationContext = citation
-    ? `VERIFIED CITATION:\n- Law: ${citation.law}\n- Section: ${citation.section_ref}\n- Statutory Meaning: ${citation.plain_explanation}\n- Source: ${citation.source_url}`
-    : `VERIFIED CITATION: null (No verified legal citation exists in curated database for this clause type)`;
+  const citationLines = [
+    citation
+      ? `VERIFIED STATUTORY CITATION:\n- Law: ${citation.law}\n- Section: ${citation.section_ref}\n- Meaning: ${citation.plain_explanation}\n- Source: ${citation.source_url}`
+      : `VERIFIED STATUTORY CITATION: null (No verified statutory reference in database)`,
+    precedent
+      ? `LANDMARK SUPREME COURT PRECEDENT:\n- Case: ${precedent.case_title}\n- Citation: ${precedent.citation} (${precedent.court}, ${precedent.year})\n- Holding: ${precedent.key_principle}\n- Tenant Protection: ${precedent.tenant_benefit}\n- Discussion Phrase: ${precedent.discussion_phrase}`
+      : `LANDMARK SUPREME COURT PRECEDENT: null`,
+  ].join("\n\n");
 
   if (!genAI) {
     return {
-      explanation: generateOfflineRiskExplanation(riskReason, citation),
-      suggestedAction: generateOfflineAction(riskScore, citation),
+      explanation: generateOfflineRiskExplanation(riskReason, citation, precedent),
+      suggestedAction: generateOfflineAction(riskScore, citation, precedent),
       latencyMs: Date.now() - start,
     };
   }
@@ -198,21 +204,21 @@ export async function explainRiskWithAI(
   try {
     const model = genAI.getGenerativeModel({
       model: MODEL_NAME,
-      systemInstruction: `You explain contract risk flags to Indian tenants.
+      systemInstruction: `You explain contract risk flags to Indian tenants using verified statutes and landmark Supreme Court precedents.
 STRICT CITATION LOCK GUARDRAILS:
-1. You may reference ONLY the citation object provided in the context.
-2. If the citation is null, state plainly: "No verified statutory reference is available in our database. You should consult a lawyer to verify local tenancy customs."
-3. NEVER invent, hallucinate, or name any law, act, section, or court precedent not explicitly provided in the VERIFIED CITATION block.
-4. Output format: Exactly 2 to 3 sentences explaining why this clause is risky for the tenant, followed by 1 practical question to ask the landlord.`,
+1. You may reference ONLY the verified statute and landmark Supreme Court precedent provided in the context.
+2. If both are null, state plainly: "No verified statutory or Supreme Court reference is available in our database. You should consult a lawyer to verify local tenancy customs."
+3. NEVER invent, hallucinate, or name any law, act, section, or court precedent not explicitly provided in the context block.
+4. Output format: Exactly 2 to 3 sentences explaining why this clause is risky for the tenant, followed by 1 practical question or discussion phrase to use with the landlord.`,
     });
 
-    const prompt = `Clause Text:\n"""\n${clauseText}\n"""\n\nDeterministic Risk Score: ${riskScore}/100\nCode Risk Reason: ${riskReason}\n\n${citationContext}\n\nExplain the risk and provide a suggested tenant action:`;
+    const prompt = `Clause Text:\n"""\n${clauseText}\n"""\n\nDeterministic Risk Score: ${riskScore}/100\nCode Risk Reason: ${riskReason}\n\n${citationLines}\n\nExplain the risk and provide a suggested tenant action:`;
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();
 
-    const parts = text.split(/(?:Suggested Question|Question to Ask|Action):/i);
+    const parts = text.split(/(?:Suggested Question|Question to Ask|Action|Discussion Point):/i);
     const explanation = parts[0]?.trim() || text;
-    const suggestedAction = parts[1]?.trim() || generateOfflineAction(riskScore, citation);
+    const suggestedAction = parts[1]?.trim() || generateOfflineAction(riskScore, citation, precedent);
 
     return {
       explanation,
@@ -222,8 +228,8 @@ STRICT CITATION LOCK GUARDRAILS:
   } catch (error) {
     console.warn("Gemini API call failed, using deterministic fallback:", error);
     return {
-      explanation: generateOfflineRiskExplanation(riskReason, citation),
-      suggestedAction: generateOfflineAction(riskScore, citation),
+      explanation: generateOfflineRiskExplanation(riskReason, citation, precedent),
+      suggestedAction: generateOfflineAction(riskScore, citation, precedent),
       latencyMs: Date.now() - start,
     };
   }
@@ -235,7 +241,12 @@ STRICT CITATION LOCK GUARDRAILS:
  */
 export async function askDocumentQuestionWithAI(
   userQuestion: string,
-  relevantClauses: Array<{ rawText: string; clauseLabel: string; citation: VerifiedCitation | null }>
+  relevantClauses: Array<{
+    rawText: string;
+    clauseLabel: string;
+    citation: VerifiedCitation | null;
+    precedent?: VerifiedPrecedent | null;
+  }>
 ): Promise<{ answer: string; isRefusal: boolean; latencyMs: number }> {
   const start = Date.now();
 
@@ -258,6 +269,10 @@ export async function askDocumentQuestionWithAI(
       (c, i) =>
         `[Clause ${i + 1}: ${c.clauseLabel}]\n${c.rawText}\nVerified Statutory Citation: ${
           c.citation ? `${c.citation.law} ${c.citation.section_ref} - ${c.citation.plain_explanation}` : "None"
+        }\nSupreme Court Landmark Precedent: ${
+          c.precedent
+            ? `${c.precedent.case_title} [${c.precedent.citation}]: ${c.precedent.key_principle} (Tenant shield: ${c.precedent.tenant_benefit})`
+            : "None"
         }`
     )
     .join("\n\n");
@@ -275,10 +290,10 @@ export async function askDocumentQuestionWithAI(
       model: MODEL_NAME,
       systemInstruction: `You are VerifiedVakil's grounded document Q&A assistant for Indian tenants.
 CITATION LOCK RULES:
-1. Answer the user's question using ONLY the provided agreement clauses and their verified statutory citations.
-2. If the user asks about a law, section, court case, or rule that is NOT present in the verified citations, you MUST explicitly state that no verified reference exists in the system and refuse to guess or confirm it.
+1. Answer the user's question using ONLY the provided agreement clauses, their verified statutory citations, and landmark Supreme Court precedents.
+2. If the user asks about a law, section, court case, or rule that is NOT present in the verified citations or precedents, you MUST explicitly state that no verified reference exists in the system and refuse to guess or confirm it.
 3. If the user asks whether to sign or asks for definitive legal advice, state that this is legal information, not legal advice, and suggest consulting an advocate.
-4. Keep the answer concise, grounded, and strictly truthful.`,
+4. Keep the answer concise, grounded, and strictly truthful. Weave landmark Supreme Court cases (like Kailash Nath v. DDA or Section 108(m) TPA) into practical suggestions when relevant.`,
     });
 
     const prompt = `AGREEMENT CONTEXT:\n${clausesContext}\n\nUSER QUESTION: ${userQuestion}\n\nGROUNDED ANSWER:`;
@@ -372,14 +387,32 @@ function generateOfflineSimplification(text: string, label: string): string {
   return `This clause outlines the mutual obligations and stipulations regarding ${label.toLowerCase()} during the tenancy.`;
 }
 
-function generateOfflineRiskExplanation(reason: string, citation: VerifiedCitation | null): string {
+function generateOfflineRiskExplanation(
+  reason: string,
+  citation: VerifiedCitation | null,
+  precedent?: VerifiedPrecedent | null
+): string {
+  let exp = reason;
   if (citation) {
-    return `${reason} Verified under ${citation.law} (${citation.section_ref}): ${citation.plain_explanation}`;
+    exp += ` Verified under ${citation.law} (${citation.section_ref}): ${citation.plain_explanation}`;
   }
-  return `${reason} Note: No verified statutory reference is cataloged in the database for this specific clause; please confirm with a qualified lawyer.`;
+  if (precedent) {
+    exp += ` Supreme Court precedent in ${precedent.case_title} [${precedent.citation}] establishes that: ${precedent.key_principle}`;
+  }
+  if (!citation && !precedent) {
+    exp += ` Note: No verified statutory or Supreme Court reference is cataloged in the database for this specific clause; please confirm with a qualified lawyer.`;
+  }
+  return exp;
 }
 
-function generateOfflineAction(riskScore: number, citation: VerifiedCitation | null): string {
+function generateOfflineAction(
+  riskScore: number,
+  citation: VerifiedCitation | null,
+  precedent?: VerifiedPrecedent | null
+): string {
+  if (precedent?.discussion_phrase) {
+    return precedent.discussion_phrase;
+  }
   if (riskScore >= 70) {
     return citation
       ? `Request the landlord to cap this term in accordance with ${citation.law} (${citation.section_ref}) before signing.`
@@ -390,7 +423,12 @@ function generateOfflineAction(riskScore: number, citation: VerifiedCitation | n
 
 function generateOfflineAnswer(
   question: string,
-  clauses: Array<{ rawText: string; clauseLabel: string; citation: VerifiedCitation | null }>
+  clauses: Array<{
+    rawText: string;
+    clauseLabel: string;
+    citation: VerifiedCitation | null;
+    precedent?: VerifiedPrecedent | null;
+  }>
 ): string {
   if (clauses.length === 0) {
     return "No relevant clauses were found in the uploaded document matching your question. VerifiedVakil only answers from verified document text.";
@@ -401,6 +439,9 @@ function generateOfflineAnswer(
     ans += ` Verified reference: ${top.citation.law} ${top.citation.section_ref} specifies that ${top.citation.plain_explanation}`;
   } else {
     ans += " (No specific statutory reference is cataloged for this clause type).";
+  }
+  if (top.precedent) {
+    ans += ` Supreme Court ruling in ${top.precedent.case_title} [${top.precedent.citation}]: ${top.precedent.key_principle} Intelligent negotiation suggestion: "${top.precedent.discussion_phrase}".`;
   }
   return ans;
 }

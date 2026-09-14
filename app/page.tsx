@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Upload,
   Bot,
+  BookOpen,
 } from "lucide-react";
 import { DocumentAnalysisResult, AnalyzedClause } from "@/lib/clauseEngine";
 import ClauseCard from "@/components/ClauseCard";
@@ -31,6 +32,7 @@ import LawyerQuestionsModal from "@/components/LawyerQuestionsModal";
 import LatencyBadge from "@/components/LatencyBadge";
 import RadialGauge from "@/components/RadialGauge";
 import Sidebar, { NavView } from "@/components/Sidebar";
+import IPLKnowledgeBank from "@/components/IPLKnowledgeBank";
 
 export default function HomePage() {
   const [agreementText, setAgreementText] = useState("");
@@ -247,6 +249,18 @@ export default function HomePage() {
               >
                 <Scale className="w-3.5 h-3.5" />
                 Compare
+              </button>
+
+              <button
+                onClick={() => setActiveView("knowledge")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold transition-all ${
+                  activeView === "knowledge"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                IPL Law Bank
               </button>
             </div>
           </div>
@@ -554,6 +568,17 @@ export default function HomePage() {
                 />
               ) : null}
             </div>
+          )}
+
+          {/* VIEW 5: IPL LEGAL KNOWLEDGE BANK & SUPREME COURT PRECEDENTS */}
+          {activeView === "knowledge" && (
+            <section aria-labelledby="knowledge-heading">
+              <IPLKnowledgeBank
+                onAskChatbot={(question) => {
+                  setActiveView("chatbot");
+                }}
+              />
+            </section>
           )}
         </main>
       </div>

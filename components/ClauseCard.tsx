@@ -152,6 +152,58 @@ export default function ClauseCard({ clause }: ClauseCardProps) {
           )}
         </div>
       </div>
+
+      {/* Supreme Court Landmark Precedent & Tenant Protection Shield */}
+      {clause.precedent && (
+        <div className="mt-4 p-3.5 rounded-xl bg-gradient-to-r from-amber-950/30 via-slate-900 to-indigo-950/30 border border-amber-500/30">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-amber-500/20">
+            <div className="flex items-center gap-2">
+              <span className="p-1 rounded-lg bg-amber-500/20 text-amber-300">
+                <Scale className="w-4 h-4" />
+              </span>
+              <div>
+                <span className="text-xs font-bold text-amber-200">
+                  Landmark Supreme Court Precedent:
+                </span>{" "}
+                <span className="text-xs font-semibold text-white italic">
+                  {clause.precedent.case_title}
+                </span>
+                <span className="ml-2 text-[11px] font-mono text-amber-300/80">
+                  [{clause.precedent.citation}]
+                </span>
+              </div>
+            </div>
+
+            <a
+              href={clause.precedent.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] font-medium text-amber-300 hover:text-amber-100 flex items-center gap-1 underline underline-offset-2 transition-colors"
+            >
+              Indian Kanoon Record <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+
+          <div className="mt-2.5 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-amber-400/90 block mb-0.5">
+                Core Legal Holding (Section 74 / TPA)
+              </span>
+              <p className="text-slate-300 leading-relaxed">
+                {clause.precedent.key_principle}
+              </p>
+            </div>
+            <div className="bg-slate-950/50 p-2.5 rounded-lg border border-amber-500/10">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-400 block mb-0.5">
+                Tenant Protection & Shield
+              </span>
+              <p className="text-emerald-200 leading-relaxed font-medium">
+                {clause.precedent.tenant_benefit}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </article>
   );
 }

@@ -57,23 +57,35 @@ export default function ChatbotAssistant({
     if (highRisks.length > 0) {
       introText += `🚨 **Key Statutory Disparities Detected (${highRisks.length} High Risks):**\n`;
       highRisks.forEach((hr) => {
-        introText += `• **${hr.clauseLabel}**: ${hr.riskReason}\n`;
+        const precNote = hr.precedent
+          ? ` *(Landmark Precedent: ${hr.precedent.case_title})*`
+          : "";
+        introText += `• **${hr.clauseLabel}**: ${hr.riskReason}${precNote}\n`;
       });
-      introText += `\n💡 **Assistive Suggestion:** You can negotiate these clauses with your landlord before signing. Below are suggested discussion points you can use.`;
+      introText += `\n💡 **Assistive Negotiation Shields:** Under landmark Supreme Court rulings (such as *Kailash Nath Associates v. DDA* for deposit caps and *Section 108(m) TPA* for wear and tear), you have strong legal grounds to request balanced terms. Click any prompt below or ask me how to negotiate with your landlord:`;
     } else {
       introText += `✅ **Good News:** Your agreement terms align closely with Model Tenancy standards with 0 high-risk clauses.`;
     }
 
-    const suggestions = highRisks.map(
-      (hr) => `Ask landlord: "Can we modify the ${hr.clauseLabel} clause to reflect statutory limits?"`
-    );
+    const suggestions: string[] = [];
+    highRisks.forEach((hr) => {
+      if (hr.precedent?.discussion_phrase) {
+        suggestions.push(hr.precedent.discussion_phrase);
+      } else {
+        suggestions.push(`Ask landlord: "Can we align ${hr.clauseLabel} with statutory standards?"`);
+      }
+    });
+
+    suggestions.push("What does Kailash Nath v. DDA hold regarding deposit deductions?");
+    suggestions.push("Can my landlord deduct full painting charges under Section 108(m) TPA?");
+    suggestions.push("What are my rights if the landlord enters without 24hr notice under MTA?");
 
     setMessages([
       {
         id: "initial-summary",
         sender: "assistant",
         text: introText,
-        suggestions: suggestions.length > 0 ? suggestions : ["Is there any lock-in penalty?", "What are the rules on landlord visits?"],
+        suggestions: suggestions.slice(0, 5),
       },
     ]);
   }, [analysis]);

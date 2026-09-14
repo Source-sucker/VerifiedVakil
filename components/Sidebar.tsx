@@ -12,7 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 
-export type NavView = "chatbot" | "inspector" | "upload" | "compare";
+export type NavView = "chatbot" | "inspector" | "upload" | "compare" | "knowledge";
 
 interface SidebarProps {
   activeView: NavView;
@@ -39,6 +39,12 @@ export default function Sidebar({
       label: "Lease Review & Radar",
       icon: <LayoutDashboard className="w-4 h-4" />,
       badge: `${totalClauses} clauses`,
+    },
+    {
+      id: "knowledge" as NavView,
+      label: "IPL Precedents & Laws",
+      icon: <BookOpen className="w-4 h-4" />,
+      badge: "SC Bench",
     },
     {
       id: "upload" as NavView,
