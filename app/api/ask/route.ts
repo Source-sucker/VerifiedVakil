@@ -19,13 +19,15 @@ export async function POST(req: NextRequest) {
     // Deterministic ranking of clauses based on question keywords
     const scoredClauses = (clauses as AnalyzedClause[]).map((c) => {
       let matchScore = 0;
-      const textLower = (c.rawText + " " + c.clauseLabel + " " + c.category).toLowerCase();
+      const textLower = `${c.rawText || ""} ${c.clauseLabel || ""} ${c.category || ""}`.toLowerCase();
       const words = qLower.split(/\s+/).filter((w) => w.length > 3);
 
       for (const w of words) {
         if (textLower.includes(w)) matchScore += 2;
       }
-      if (textLower.includes(c.clauseType.replace("_", " "))) matchScore += 3;
+      if (c.clauseType && typeof c.clauseType === "string" && textLower.includes(c.clauseType.replace(/_/g, " "))) {
+        matchScore += 3;
+      }
 
       return { clause: c, score: matchScore };
     });
