@@ -1,0 +1,94 @@
+{
+  "entries": [
+    {
+      "clause_type": "registration_duration",
+      "law": "Registration Act, 1908",
+      "section_ref": "Section 17(1)(d)",
+      "plain_explanation": "Leases of immovable property from year to year or for any term exceeding one year require compulsory registration with sub-registrar. Unregistered leases exceeding 11 months cannot be admitted in court as evidence of the tenancy under Section 49.",
+      "jurisdiction_scope": "national",
+      "source_url": "https://www.indiacode.nic.in/handle/123456789/2275",
+      "last_verified": "2026-09-13"
+    },
+    {
+      "clause_type": "security_deposit",
+      "law": "Model Tenancy Act, 2021",
+      "section_ref": "Section 13(1)",
+      "plain_explanation": "For residential premises, the security deposit to be paid by the tenant in advance shall not exceed two months' rent. (Applicable in states adopting the MTA framework).",
+      "jurisdiction_scope": "template_state_adoption",
+      "source_url": "https://mohua.gov.in/upload/uploadfiles/files/Model_Tenancy_Act_English.pdf",
+      "last_verified": "2026-09-13"
+    },
+    {
+      "clause_type": "landlord_entry",
+      "law": "Model Tenancy Act, 2021",
+      "section_ref": "Section 15(1)",
+      "plain_explanation": "Landlord or property manager must serve at least 24 hours' prior written notice to the tenant specifying the time and purpose before entry, which must take place only between 7:00 AM and 8:00 PM.",
+      "jurisdiction_scope": "template_state_adoption",
+      "source_url": "https://mohua.gov.in/upload/uploadfiles/files/Model_Tenancy_Act_English.pdf",
+      "last_verified": "2026-09-13"
+    },
+    {
+      "clause_type": "notice_period",
+      "law": "Transfer of Property Act, 1882",
+      "section_ref": "Section 106",
+      "plain_explanation": "In absence of contract to the contrary, a residential lease is terminable with 15 days written notice. Standard equitable practice stipulates 30 days bilateral notice for residential leave-and-license agreements.",
+      "jurisdiction_scope": "national",
+      "source_url": "https://www.indiacode.nic.in/handle/123456789/2338",
+      "last_verified": "2026-09-13"
+    },
+    {
+      "clause_type": "return_of_deposit",
+      "law": "Model Tenancy Act, 2021",
+      "section_ref": "Section 13(2)",
+      "plain_explanation": "The security deposit shall be refunded to the tenant on the date of taking over vacant possession of the premises from the tenant, after adjusting any lawful tenant dues.",
+      "jurisdiction_scope": "template_state_adoption",
+      "source_url": "https://mohua.gov.in/upload/uploadfiles/files/Model_Tenancy_Act_English.pdf",
+      "last_verified": "2026-09-13"
+    },
+    {
+      "clause_type": "maintenance_responsibility",
+      "law": "Model Tenancy Act, 2021",
+      "section_ref": "Section 15 & Second Schedule",
+      "plain_explanation": "Landlord is responsible for structural repairs, whitewashing, and main electrical/plumbing conduits. Tenant is responsible for day-to-day minor repairs, tap washers, and internal cleaning.",
+      "jurisdiction_scope": "template_state_adoption",
+      "source_url": "https://mohua.gov.in/upload/uploadfiles/files/Model_Tenancy_Act_English.pdf",
+      "last_verified": "2026-09-13"
+    },
+    {
+      "clause_type": "subletting",
+      "law": "Model Tenancy Act, 2021",
+      "section_ref": "Section 7",
+      "plain_explanation": "No tenant shall sublet whole or part of the premises or transfer or assign rights without entering into a supplementary agreement with the landlord.",
+      "jurisdiction_scope": "template_state_adoption",
+      "source_url": "https://mohua.gov.in/upload/uploadfiles/files/Model_Tenancy_Act_English.pdf",
+      "last_verified": "2026-09-13"
+    },
+    {
+      "clause_type": "quiet_enjoyment",
+      "law": "Transfer of Property Act, 1882",
+      "section_ref": "Section 108(c)",
+      "plain_explanation": "The lessor covenants that if the lessee pays the rent reserved and performs the contract, the lessee may hold and enjoy the property during the term without lawful interruption.",
+      "jurisdiction_scope": "national",
+      "source_url": "https://www.indiacode.nic.in/handle/123456789/2338",
+      "last_verified": "2026-09-13"
+    },
+    {
+      "clause_type": "forfeiture_clause",
+      "law": "Indian Contract Act, 1872",
+      "section_ref": "Section 74",
+      "plain_explanation": "Liquidated damages or forfeiture clauses cannot impose unreasonable penalties. Compensation is restricted only to actual proven loss rather than arbitrary total forfeiture.",
+      "jurisdiction_scope": "national",
+      "source_url": "https://www.indiacode.nic.in/handle/123456789/2187",
+      "last_verified": "2026-09-13"
+    },
+    {
+      "clause_type": "delay_interest",
+      "law": "Model Tenancy Act, 2021",
+      "section_ref": "Section 14",
+      "plain_explanation": "Default in timely payment of rent entitles the landlord to simple interest at prescribed rates, but does not allow unlawful disconnection of essential services or utilities.",
+      "jurisdiction_scope": "template_state_adoption",
+      "source_url": "https://mohua.gov.in/upload/uploadfiles/files/Model_Tenancy_Act_English.pdf",
+      "last_verified": "2026-09-13"
+    }
+  ]
+}

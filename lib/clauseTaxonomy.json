@@ -1,0 +1,305 @@
+{
+  "clause_types": [
+    {
+      "id": "security_deposit",
+      "label": "Security Deposit",
+      "category": "Financial",
+      "match_patterns": [
+        "security deposit",
+        "refundable deposit",
+        "advance amount",
+        "caution deposit",
+        "interest-free deposit",
+        "months' rent as deposit",
+        "months rent as deposit"
+      ],
+      "extract": { "type": "currency_multiple_of_rent" }
+    },
+    {
+      "id": "notice_period",
+      "label": "Termination Notice Period",
+      "category": "Termination",
+      "match_patterns": [
+        "notice period",
+        "days notice",
+        "months notice",
+        "month's notice",
+        "prior written notice to terminate",
+        "termination of tenancy",
+        "terminate this license by giving"
+      ],
+      "extract": { "type": "duration_days" }
+    },
+    {
+      "id": "lock_in_period",
+      "label": "Lock-in Period",
+      "category": "Duration",
+      "match_patterns": [
+        "lock-in",
+        "lock in period",
+        "minimum stay",
+        "lock-in duration",
+        "cannot vacate during initial",
+        "before the expiry of lock-in"
+      ],
+      "extract": { "type": "duration_months" }
+    },
+    {
+      "id": "rent_escalation",
+      "label": "Rent Escalation on Renewal",
+      "category": "Financial",
+      "match_patterns": [
+        "rent shall increase",
+        "escalation",
+        "enhancement of rent",
+        "hike of",
+        "% increase",
+        "percent increase per annum",
+        "revised upward"
+      ],
+      "extract": { "type": "percentage" }
+    },
+    {
+      "id": "landlord_entry",
+      "label": "Landlord Entry / Inspection Rights",
+      "category": "Privacy",
+      "match_patterns": [
+        "right to enter",
+        "inspection",
+        "access to the premises",
+        "inspect the premises",
+        "enter upon the scheduled premises",
+        "view the condition",
+        "at any reasonable time",
+        "at any time without notice"
+      ],
+      "extract": { "type": "frequency_or_notice" }
+    },
+    {
+      "id": "subletting",
+      "label": "Subletting / Assignment Restriction",
+      "category": "Usage",
+      "match_patterns": [
+        "sublet",
+        "sub-license",
+        "assign this agreement",
+        "part with possession",
+        "transfer or assign",
+        "underlet"
+      ],
+      "extract": { "type": "boolean_permitted" }
+    },
+    {
+      "id": "maintenance_responsibility",
+      "label": "Maintenance & Repair Responsibility",
+      "category": "Maintenance",
+      "match_patterns": [
+        "maintenance charges",
+        "repairs shall be borne",
+        "upkeep",
+        "day-to-day repairs",
+        "structural repairs",
+        "leakages",
+        "plumbing and electrical repairs",
+        "society maintenance charges"
+      ],
+      "extract": { "type": "party_assignment" }
+    },
+    {
+      "id": "registration_duration",
+      "label": "Agreement Term / Registration Trigger",
+      "category": "Legal Validity",
+      "match_patterns": [
+        "term of this agreement",
+        "period of tenancy",
+        "period of 11 months",
+        "period of eleven months",
+        "duration of this license",
+        "months commencing from"
+      ],
+      "extract": { "type": "duration_months" }
+    },
+    {
+      "id": "painting_charges",
+      "label": "Painting & Restoration Deductions",
+      "category": "Financial",
+      "match_patterns": [
+        "painting charges",
+        "cost of repainting",
+        "deducted towards painting",
+        "whitewashing charges",
+        "deep cleaning charges",
+        "re-painting of the premises"
+      ],
+      "extract": { "type": "monetary_or_rent_fraction" }
+    },
+    {
+      "id": "return_of_deposit",
+      "label": "Refund of Security Deposit",
+      "category": "Financial",
+      "match_patterns": [
+        "refund of the security deposit",
+        "return of deposit",
+        "refund the security deposit within",
+        "deposit shall be returned",
+        "repayment of deposit"
+      ],
+      "extract": { "type": "duration_days" }
+    },
+    {
+      "id": "forfeiture_clause",
+      "label": "Security Deposit Forfeiture / Penalties",
+      "category": "Financial",
+      "match_patterns": [
+        "forfeited by the licensor",
+        "deposit shall stand forfeited",
+        "forfeiture of advance",
+        "entire deposit shall be confiscated"
+      ],
+      "extract": { "type": "boolean_exists" }
+    },
+    {
+      "id": "quiet_enjoyment",
+      "label": "Quiet & Peaceful Enjoyment",
+      "category": "Rights",
+      "match_patterns": [
+        "peaceful possession",
+        "quiet enjoyment",
+        "without any interruption or hindrance",
+        "peaceably and quietly enjoy"
+      ],
+      "extract": { "type": "boolean_exists" }
+    },
+    {
+      "id": "dispute_resolution",
+      "label": "Dispute Resolution & Jurisdiction",
+      "category": "Legal",
+      "match_patterns": [
+        "exclusive jurisdiction",
+        "courts at",
+        "arbitration",
+        "arbitrator",
+        "dispute arising out of this agreement"
+      ],
+      "extract": { "type": "jurisdiction_city" }
+    },
+    {
+      "id": "delay_interest",
+      "label": "Late Payment Penalty / Interest",
+      "category": "Financial",
+      "match_patterns": [
+        "interest on delayed rent",
+        "late fee",
+        "per day delay",
+        "% per month for delay",
+        "fine for delayed payment"
+      ],
+      "extract": { "type": "interest_or_penalty" }
+    },
+    {
+      "id": "overstaying_penalty",
+      "label": "Overstaying / Penal Rent",
+      "category": "Termination",
+      "match_patterns": [
+        "damages for overstay",
+        "per day for every day of unauthorized stay",
+        "double the monthly rent",
+        "unauthorized occupation",
+        "holding over"
+      ],
+      "extract": { "type": "daily_or_multiple_fine" }
+    },
+    {
+      "id": "alterations",
+      "label": "Alterations & Structural Changes",
+      "category": "Usage",
+      "match_patterns": [
+        "alteration or addition",
+        "structural change",
+        "nails in the wall",
+        "damage to walls",
+        "modifications without written consent"
+      ],
+      "extract": { "type": "boolean_exists" }
+    },
+    {
+      "id": "pets_policy",
+      "label": "Pets & Domestic Animals",
+      "category": "Living Conditions",
+      "match_patterns": [
+        "pets are not allowed",
+        "no pets",
+        "keep any pets",
+        "domestic animals",
+        "permission for pets"
+      ],
+      "extract": { "type": "boolean_allowed" }
+    },
+    {
+      "id": "visitors_guests",
+      "label": "Guests & Visitor Restrictions",
+      "category": "Privacy",
+      "match_patterns": [
+        "overnight guests",
+        "visitors are not permitted",
+        "stay of guests",
+        "visitors after",
+        "guests shall not exceed"
+      ],
+      "extract": { "type": "boolean_restricted" }
+    },
+    {
+      "id": "utility_payments",
+      "label": "Electricity & Utility Payments",
+      "category": "Financial",
+      "match_patterns": [
+        "electricity bills",
+        "water charges",
+        "utility charges",
+        "meter reading",
+        "bescom",
+        "tneb",
+        "cesc"
+      ],
+      "extract": { "type": "party_assignment" }
+    },
+    {
+      "id": "force_majeure",
+      "label": "Force Majeure / Calamity",
+      "category": "Risk",
+      "match_patterns": [
+        "force majeure",
+        "act of god",
+        "premises become uninhabitable",
+        "fire, flood, earthquake",
+        "unforeseen calamity"
+      ],
+      "extract": { "type": "boolean_exists" }
+    },
+    {
+      "id": "inventory_fixtures",
+      "label": "Inventory & Fittings Handover",
+      "category": "Handover",
+      "match_patterns": [
+        "fixtures and fittings",
+        "inventory list",
+        "electrical appliances",
+        "good working condition",
+        "schedule of furniture"
+      ],
+      "extract": { "type": "boolean_exists" }
+    },
+    {
+      "id": "renewal_terms",
+      "label": "Renewal & Extension Terms",
+      "category": "Duration",
+      "match_patterns": [
+        "renewal of this agreement",
+        "extended on mutually agreed terms",
+        "option to renew",
+        "fresh agreement shall be executed"
+      ],
+      "extract": { "type": "duration_months" }
+    }
+  ]
+}
