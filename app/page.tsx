@@ -133,7 +133,7 @@ export default function HomePage() {
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                AI for Legal Assistance & Access • PromptWars Exclusive
+                Assistive AI for Lease Comprehension • Not a Lawyer Replacement
               </p>
             </div>
           </div>
@@ -150,10 +150,10 @@ export default function HomePage() {
               <button
                 onClick={() => setIsLawyerModalOpen(true)}
                 className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 transition-colors"
-                aria-label="Export questions for lawyer"
+                aria-label="Export negotiation checklist"
               >
                 <Printer className="w-3.5 h-3.5" />
-                Export Lawyer Questions
+                Export Negotiation Checklist
               </button>
             )}
           </div>

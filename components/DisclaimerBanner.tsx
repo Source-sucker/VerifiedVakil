@@ -14,7 +14,7 @@ export default function DisclaimerBanner() {
         <div className="flex items-center gap-2">
           <Scale className="w-4 h-4 text-indigo-400 shrink-0" aria-hidden="true" />
           <span>
-            <strong className="text-white font-medium">Statutory Notice:</strong> VerifiedVakil provides automated legal information & statutory risk analysis, not formal legal advice.
+            <strong className="text-white font-medium">Assistive Solution Notice:</strong> VerifiedVakil is an automated reading & self-help aid for lease comprehension — not a lawyer consultation or replacement.
           </span>
         </div>
         <div className="hidden sm:flex items-center gap-3 text-slate-400">
@@ -23,7 +23,7 @@ export default function DisclaimerBanner() {
             Citation-Locked to India Code
           </span>
           <span className="text-slate-600">|</span>
-          <span className="text-slate-300">Always confirm with a qualified lawyer before signing</span>
+          <span className="text-slate-300">Consult an advocate for formal legal counsel</span>
         </div>
       </div>
     </div>

@@ -36,7 +36,7 @@ export default function LawyerQuestionsModal({
           <div className="flex items-center gap-2">
             <Scale className="w-5 h-5 text-indigo-400" />
             <h2 id="modal-title" className="text-base font-bold text-white">
-              Tenant Negotiation Brief & Questions for Lawyer
+              Tenant Assistive Negotiation & Discussion Checklist
             </h2>
           </div>
           <div className="flex items-center gap-2">
@@ -64,10 +64,10 @@ export default function LawyerQuestionsModal({
             <div className="flex justify-between items-start">
               <div>
                 <h1 className="text-xl font-bold text-white">
-                  VerifiedVakil — Legal Consultation Brief
+                  VerifiedVakil — Tenant Assistive Preparation Brief
                 </h1>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Generated on {new Date().toLocaleDateString("en-IN", { dateStyle: "long" })}
+                  Comprehension & Negotiation Aid • Generated on {new Date().toLocaleDateString("en-IN", { dateStyle: "long" })}
                 </p>
               </div>
               <div className="text-right">
@@ -77,7 +77,7 @@ export default function LawyerQuestionsModal({
             </div>
 
             <div className="mt-3 p-2.5 rounded bg-slate-800/60 text-xs text-slate-300">
-              <strong>Notice to Legal Counsel:</strong> This document highlights clauses flagged by VerifiedVakil's deterministic statutory engine against the Model Tenancy Act, Registration Act 1908, and Transfer of Property Act 1882. Please review these provisions prior to the tenant signing.
+              <strong>Assistive Solution Notice:</strong> This summary is an automated reading and negotiation aid designed to assist tenants in understanding agreement terms. It does <strong>not</strong> constitute a legal consultation or lawyer replacement. Use these discussion points to negotiate fair terms with your landlord or take them to a qualified advocate for professional counsel.
             </div>
           </div>
 
@@ -125,7 +125,7 @@ export default function LawyerQuestionsModal({
                   <div className="mt-2 p-2 rounded bg-indigo-950/30 border border-indigo-500/20 text-indigo-200 flex items-start gap-2">
                     <HelpCircle className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
                     <div>
-                      <strong className="text-indigo-300">Question for Lawyer / Landlord:</strong>{" "}
+                      <strong className="text-indigo-300">Negotiation & Discussion Question:</strong>{" "}
                       {clause.suggestedAction ||
                         `Can we rephrase this ${clause.clauseLabel} clause to ensure fair bilateral rights?`}
                     </div>
