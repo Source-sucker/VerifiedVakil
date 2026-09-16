@@ -138,7 +138,7 @@ Tested on Apple Silicon / Vercel Serverless environment:
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/anik-pandey/verifiedvakil.git
+git clone https://github.com/Source-sucker/prompt-wars.git
 cd verifiedvakil
 
 # 2. Install dependencies
