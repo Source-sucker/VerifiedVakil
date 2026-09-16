@@ -467,7 +467,8 @@ CITATION LOCK RULES:
 1. Answer the user's question using ONLY the provided agreement clauses, their verified statutory citations, and landmark Supreme Court precedents.
 2. If the user asks about a law, section, court case, or rule that is NOT present in the verified citations or precedents, you MUST explicitly state that no verified reference exists in the system and refuse to guess or confirm it.
 3. If the user asks whether to sign or asks for definitive legal advice, state that this is legal information, not legal advice, and suggest consulting an advocate.
-4. Keep the answer concise, grounded, and strictly truthful. Weave landmark Supreme Court cases (like Kailash Nath v. DDA or Section 108(m) TPA) into practical suggestions when relevant.`;
+4. Keep the answer concise, grounded, and strictly truthful.
+5. ZERO BARE SURNAMES OR INFORMAL FRAGMENTS: Never emit a bare surname or informal fragment (e.g. 'Bishandas', 'Anthony', 'Fateh Chand', or 'Kailash Nath'). Always cite the complete formal case name with official citation: e.g., 'Kailash Nath Associates v. Delhi Development Authority, (2015) 4 SCC 136' or 'Anthony v. K.C. Ittoop & Sons & Ors., (2000) 6 SCC 394' or 'Fateh Chand v. Balkishan Dass, (1964) 1 SCR 515 / AIR 1963 SC 1405'.`;
 
   const prompt = `AGREEMENT CONTEXT:\n${clausesContext}\n\nUSER QUESTION: ${userQuestion}\n\nGROUNDED ANSWER:`;
   const text = await callGemini(systemInstruction, prompt, clientApiKey);
@@ -625,7 +626,7 @@ function generateOfflineAnswer(
       ? `a fixed charge of ${facts.paintingChargeFormatted}`
       : "a mandatory flat-rate repainting deduction";
 
-    return `Under Section 108(m) of the Transfer of Property Act, 1882 and Section 15(2) of the Model Tenancy Act, tenants are legally protected against deductions for "ordinary wear and tear."${quote} A landlord cannot unilaterally levy ${feeText} without proving exceptional, tenant-caused damage supported by contemporaneous GST repair invoices. (Confirmed in Supreme Court precedent Kailash Nath Associates v. DDA, which strictly prohibits arbitrary forfeitures and penalties).`;
+    return `Under Section 108(m) of the Transfer of Property Act, 1882 and Section 15(2) of the Model Tenancy Act, tenants are legally protected against deductions for "ordinary wear and tear."${quote} A landlord cannot unilaterally levy ${feeText} without proving exceptional, tenant-caused damage supported by contemporaneous GST repair invoices. (Confirmed in Supreme Court precedent Kailash Nath Associates v. Delhi Development Authority, (2015) 4 SCC 136, which strictly prohibits arbitrary forfeitures and penalties).`;
   }
 
   // 3. Deposit Calculation Prompt
@@ -633,14 +634,14 @@ function generateOfflineAnswer(
     if (facts.securityDeposit && facts.monthlyRent) {
       const cap = facts.monthlyRent * 2;
       const excess = Math.max(0, facts.securityDeposit - cap);
-      return `Statutory Calculation Framework (Model Tenancy Act, 2021):\n\n• Agreed Monthly Rent: ${facts.monthlyRentFormatted}\n• Proposed Security Deposit: ${facts.securityDepositFormatted} (${facts.depositMonths || Math.round(facts.securityDeposit / facts.monthlyRent)} months)\n• Statutory Ceiling (MTA Sec 11(1) - 2 Months): ₹${cap.toLocaleString("en-IN")}\n• Unlawful Excess Advance: ₹${excess.toLocaleString("en-IN")}\n\nUnder Section 11(2) of the Model Tenancy Act, 2021, the maximum security deposit for residential premises cannot exceed 2 months' rent. The landlord is holding an unlawful excess of ₹${excess.toLocaleString("en-IN")}. The statutory 2-month balance (₹${cap.toLocaleString("en-IN")}) must be refunded within 30 days of vacating after adjusting actual unpaid utility dues. Unconditional lock-in forfeiture is legally an unenforceable penalty under Section 74 of the Indian Contract Act (Kailash Nath Associates v. DDA).`;
+      return `Statutory Calculation Framework (Model Tenancy Act, 2021):\n\n• Agreed Monthly Rent: ${facts.monthlyRentFormatted}\n• Proposed Security Deposit: ${facts.securityDepositFormatted} (${facts.depositMonths || Math.round(facts.securityDeposit / facts.monthlyRent)} months)\n• Statutory Ceiling (MTA Sec 11(1) - 2 Months): ₹${cap.toLocaleString("en-IN")}\n• Unlawful Excess Advance: ₹${excess.toLocaleString("en-IN")}\n\nUnder Section 11(2) of the Model Tenancy Act, 2021, the maximum security deposit for residential premises cannot exceed 2 months' rent. The landlord is holding an unlawful excess of ₹${excess.toLocaleString("en-IN")}. The statutory 2-month balance (₹${cap.toLocaleString("en-IN")}) must be refunded within 30 days of vacating after adjusting actual unpaid utility dues. Unconditional lock-in forfeiture is legally an unenforceable penalty under Section 74 of the Indian Contract Act (Kailash Nath Associates v. Delhi Development Authority, (2015) 4 SCC 136).`;
     }
 
     if (facts.securityDeposit) {
-      return `Statutory Calculation Framework (Model Tenancy Act, 2021):\n\n• Proposed Security Deposit: ${facts.securityDepositFormatted}\n• Statutory Ceiling (MTA Sec 11(1)): Capped at 2 months' rent.\n\nAny portion of your deposit exceeding 2 months of agreed rent is an unlawful advance under the Model Tenancy Act. The lawful 2-month portion must be refunded within 30 days of vacating, with no deductions permitted for ordinary wear and tear (Section 108(m) TPA). Liquidated damages or total lock-in forfeiture are governed by Section 74 of the Indian Contract Act.`;
+      return `Statutory Calculation Framework (Model Tenancy Act, 2021):\n\n• Proposed Security Deposit: ${facts.securityDepositFormatted}\n• Statutory Ceiling (MTA Sec 11(1)): Capped at 2 months' rent.\n\nAny portion of your deposit exceeding 2 months of agreed rent is an unlawful advance under the Model Tenancy Act. The lawful 2-month portion must be refunded within 30 days of vacating, with no deductions permitted for ordinary wear and tear (Section 108(m) TPA). Liquidated damages or total lock-in forfeiture are governed by Section 74 of the Indian Contract Act (Kailash Nath Associates v. Delhi Development Authority, (2015) 4 SCC 136).`;
     }
 
-    return `Under Section 11(1) of the Model Tenancy Act, 2021, the maximum permissible residential security deposit is capped at 2 months' rent. Any deposit collected above 2 months' rent represents an unlawful advance under statutory policy. Section 11(2) mandates that the 2-month deposit must be refunded within 30 days of vacation after adjusting actual unpaid utility arrears. Unconditional lock-in forfeiture is deemed an unenforceable penalty under Section 74 of the Indian Contract Act (Kailash Nath Associates v. DDA).`;
+    return `Under Section 11(1) of the Model Tenancy Act, 2021, the maximum permissible residential security deposit is capped at 2 months' rent. Any deposit collected above 2 months' rent represents an unlawful advance under statutory policy. Section 11(2) mandates that the 2-month deposit must be refunded within 30 days of vacation after adjusting actual unpaid utility arrears. Unconditional lock-in forfeiture is deemed an unenforceable penalty under Section 74 of the Indian Contract Act (Kailash Nath Associates v. Delhi Development Authority, (2015) 4 SCC 136).`;
   }
 
   // 4. Default Grounded Clause Answer

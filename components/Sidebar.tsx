@@ -27,36 +27,38 @@ export default function Sidebar({
   safetyScore = 100,
   totalClauses = 0,
 }: SidebarProps) {
+  const clauseBadgeText = `${totalClauses} ${totalClauses === 1 ? "Clause" : "Clauses"}`;
+
   const navItems = [
     {
       id: "chatbot" as NavView,
-      label: "Chatbot Guide & Suggestions",
+      label: "Ask AI Assistant",
       icon: <MessageSquare className="w-4 h-4" />,
-      badge: "AI Assist",
+      badge: "Chat",
     },
     {
       id: "inspector" as NavView,
-      label: "Lease Review & Radar",
+      label: "Review Clauses",
       icon: <LayoutDashboard className="w-4 h-4" />,
-      badge: `${totalClauses} clauses`,
+      badge: clauseBadgeText,
     },
     {
       id: "knowledge" as NavView,
-      label: "IPL Precedents & Laws",
+      label: "Tenant Rights & Laws",
       icon: <BookOpen className="w-4 h-4" />,
-      badge: "SC Bench",
+      badge: "Supreme Court",
     },
     {
       id: "upload" as NavView,
-      label: "Upload & OCR Document",
+      label: "Upload Agreement",
       icon: <FileSearch className="w-4 h-4" />,
-      badge: "Vision OCR",
+      badge: "Scan / PDF",
     },
     {
       id: "compare" as NavView,
-      label: "Baseline Compare",
+      label: "Compare with Fair Rules",
       icon: <GitCompare className="w-4 h-4" />,
-      badge: "MTA 2021",
+      badge: "Govt Model",
     },
   ];
 
@@ -77,11 +79,11 @@ export default function Sidebar({
                 VerifiedVakil
               </span>
               <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-500/40 font-bold">
-                AI SENTINEL
+                Tenant Protection
               </span>
             </div>
             <p className="text-[10px] text-slate-400 font-medium">
-              Tenant Legal Intelligence Platform
+              Rental Agreement Reviewer
             </p>
           </div>
         </div>
@@ -89,7 +91,7 @@ export default function Sidebar({
         {/* Navigation links */}
         <nav className="space-y-1.5" aria-label="Main Navigation">
           <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 pb-1">
-            Core Verticals
+            Features
           </div>
           {navItems.map((item) => {
             const isActive = activeView === item.id;
@@ -124,20 +126,20 @@ export default function Sidebar({
         </nav>
       </div>
 
-      {/* Bottom Status Card matching Screenshot 1 */}
+      {/* Bottom Status Card */}
       <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-2.5">
         <div className="flex items-center justify-between text-xs">
           <span className="text-slate-300 flex items-center gap-1.5 text-[11px] font-semibold">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            Citation-Lock: 100% Active
+            Legal Citations: Verified
           </span>
         </div>
         <p className="text-[10px] text-slate-400 leading-snug">
-          India Code &amp; State Law Grounded
+          Indian Tenancy Laws Grounded
         </p>
         <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
           <span className="font-semibold text-slate-200">Bengaluru, KA</span>
-          <span className="text-[10px] text-cyan-400 font-mono">Karnataka MTA</span>
+          <span className="text-[10px] text-cyan-400 font-mono">Model Tenancy Act</span>
         </div>
       </div>
     </aside>

@@ -40,7 +40,7 @@ import ApiKeyModal from "@/components/ApiKeyModal";
 
 export default function HomePage() {
   const [agreementText, setAgreementText] = useState("");
-  const [documentTitle, setDocumentTitle] = useState("Bellandur_Lease_Draft_2026.pdf");
+  const [documentTitle, setDocumentTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<DocumentAnalysisResult | null>(null);
   const [timings, setTimings] = useState<{
@@ -54,7 +54,7 @@ export default function HomePage() {
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
   const [compareData, setCompareData] = useState<any>(null);
   const [compareLoading, setCompareLoading] = useState(false);
-  const [selectedBench, setSelectedBench] = useState<string>("aggressive");
+  const [selectedBench, setSelectedBench] = useState<string | null>(null);
   const [selectedClauseToAsk, setSelectedClauseToAsk] = useState<AnalyzedClause | null>(null);
 
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
@@ -224,10 +224,7 @@ export default function HomePage() {
     }
   }, [activeView, agreementText, compareData]);
 
-  // Initial load default
-  useEffect(() => {
-    loadSample("sample-lease-aggressive.txt", "aggressive", "Bellandur_Lease_Draft_2026.pdf");
-  }, []);
+  // Start in clean interactive state without auto-spawning contracts
 
   const filteredClauses = analysis
     ? analysis.clauses.filter((c) => {
@@ -254,7 +251,7 @@ export default function HomePage() {
 
       {/* Main Workspace */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Navbar matching Screenshot 1 & 2 */}
+        {/* Top Navbar */}
         <header className="sticky top-0 z-30 bg-[#090d16]/95 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 py-2.5 no-print">
           <div className="flex flex-wrap items-center justify-between gap-3">
             {/* Left: Brand & Tagline */}
@@ -266,11 +263,11 @@ export default function HomePage() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm sm:text-base font-extrabold text-white tracking-tight">VerifiedVakil</span>
                   <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-500/40 font-bold uppercase tracking-wider">
-                    AI Sentinel
+                    Tenant Protection
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-400 font-medium hidden sm:block">
-                  Tenant Legal Intelligence Platform
+                  Rental Agreement Reviewer
                 </p>
               </div>
             </div>
@@ -286,7 +283,7 @@ export default function HomePage() {
                 }`}
               >
                 <Bot className="w-3.5 h-3.5" />
-                <span>Chatbot Guide</span>
+                <span>Ask AI Assistant</span>
               </button>
 
               <button
@@ -298,7 +295,7 @@ export default function HomePage() {
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
-                <span>Clause Inspector</span>
+                <span>Review Clauses</span>
               </button>
 
               <button
@@ -310,7 +307,7 @@ export default function HomePage() {
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5" />
-                <span>IPL Law Bank</span>
+                <span>Tenant Rights &amp; Laws</span>
               </button>
 
               <button
@@ -322,7 +319,7 @@ export default function HomePage() {
                 }`}
               >
                 <Upload className="w-3.5 h-3.5" />
-                <span>Upload &amp; OCR</span>
+                <span>Upload Agreement</span>
               </button>
 
               <button
@@ -334,7 +331,7 @@ export default function HomePage() {
                 }`}
               >
                 <Scale className="w-3.5 h-3.5" />
-                <span>Compare</span>
+                <span>Compare with Fair Rules</span>
               </button>
             </div>
 
@@ -348,7 +345,7 @@ export default function HomePage() {
                     ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/50"
                     : "bg-slate-900/80 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
                 }`}
-                title="Click to configure Gemini API Key or test reasoning engine connection"
+                title="Click to configure Gemini API Key"
               >
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
@@ -361,16 +358,16 @@ export default function HomePage() {
                 />
                 <span>
                   {apiStatus === "connected"
-                    ? "Gemini 3.6 Flash Active"
+                    ? "Gemini Flash Active"
                     : apiStatus === "checking"
                     ? "Testing AI Engine..."
-                    : "Local Grounded Engine (Configure API)"}
+                    : "AI Engine: Ready (Set Key)"}
                 </span>
               </button>
 
               <span className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-cyan-950/60 text-cyan-300 border border-cyan-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                Karnataka MTA Grounded
+                Model Tenancy Law Grounded
               </span>
 
               <LatencyBadge
@@ -385,7 +382,7 @@ export default function HomePage() {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>Export Advice</span>
+                  <span>Export Report</span>
                 </button>
               )}
 
@@ -399,7 +396,153 @@ export default function HomePage() {
 
         {/* Dashboard Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] w-full mx-auto">
-          {/* Ingest Residential Tenancy Draft Banner (Screenshot 1) */}
+          {/* Dedicated Demo Scenarios Section */}
+          <section aria-label="Demo Scenarios" className="glass-panel p-4 sm:p-5 rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-slate-950 via-indigo-950/20 to-slate-950 shadow-xl space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800/80">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-cyan-400" />
+                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-200">
+                  Evaluator Demo Scenarios — Quick Test
+                </h3>
+              </div>
+              <span className="text-[11px] text-slate-400">
+                Judge self-serve presets. (For video walkthrough recording, enter data live via paste or file upload).
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* Demo 1: Landlord Payment Request */}
+              <div
+                onClick={() =>
+                  loadSample(
+                    "sample-lease-aggressive.txt",
+                    "aggressive",
+                    "Demo: Landlord Payment Request"
+                  )
+                }
+                className={`p-3.5 rounded-2xl border cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2.5 group ${
+                  selectedBench === "aggressive"
+                    ? "bg-indigo-950/70 border-indigo-500 shadow-lg shadow-indigo-600/20 ring-1 ring-indigo-500"
+                    : "bg-slate-900/70 border-slate-800/90 hover:border-indigo-500/50 hover:bg-slate-900"
+                }`}
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white group-hover:text-indigo-300 transition-colors flex items-center gap-1.5">
+                      💳 Landlord Payment Request
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-500/30 text-[9px] font-mono font-bold">
+                      High Risk
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-snug">
+                    Landlord demands 10-month deposit (₹3,50,000) and mandatory ₹45,000 painting fee.
+                  </p>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-slate-800/60 text-[10px]">
+                  <span className="text-slate-400 font-mono">14 Clauses</span>
+                  <button
+                    type="button"
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                      selectedBench === "aggressive"
+                        ? "bg-indigo-600 text-white"
+                        : "bg-slate-800 text-indigo-300 group-hover:bg-indigo-600 group-hover:text-white"
+                    }`}
+                  >
+                    {selectedBench === "aggressive" ? "Active Demo" : "Click Demo"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Demo 2: Fair Standard Agreement */}
+              <div
+                onClick={() =>
+                  loadSample(
+                    "sample-lease-fair.txt",
+                    "fair",
+                    "Demo: Fair Standard Agreement"
+                  )
+                }
+                className={`p-3.5 rounded-2xl border cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2.5 group ${
+                  selectedBench === "fair"
+                    ? "bg-emerald-950/70 border-emerald-500 shadow-lg shadow-emerald-600/20 ring-1 ring-emerald-500"
+                    : "bg-slate-900/70 border-slate-800/90 hover:border-emerald-500/50 hover:bg-slate-900"
+                }`}
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors flex items-center gap-1.5">
+                      ⚖️ Fair Standard Agreement
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/30 text-[9px] font-mono font-bold">
+                      Safe
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-snug">
+                    Model Tenancy Act compliant: 2-month deposit cap, 24-hr written notice, and wear &amp; tear protection.
+                  </p>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-slate-800/60 text-[10px]">
+                  <span className="text-slate-400 font-mono">Govt Model</span>
+                  <button
+                    type="button"
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                      selectedBench === "fair"
+                        ? "bg-emerald-600 text-white"
+                        : "bg-slate-800 text-emerald-300 group-hover:bg-emerald-600 group-hover:text-white"
+                    }`}
+                  >
+                    {selectedBench === "fair" ? "Active Demo" : "Click Demo"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Demo 3: Unfair Entry & Lock-in */}
+              <div
+                onClick={() =>
+                  loadSample(
+                    "sample-lease-adversarial.txt",
+                    "adversarial",
+                    "Demo: Unfair Entry & Lock-in"
+                  )
+                }
+                className={`p-3.5 rounded-2xl border cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2.5 group ${
+                  selectedBench === "adversarial"
+                    ? "bg-amber-950/70 border-amber-500 shadow-lg shadow-amber-600/20 ring-1 ring-amber-500"
+                    : "bg-slate-900/70 border-slate-800/90 hover:border-amber-500/50 hover:bg-slate-900"
+                }`}
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white group-hover:text-amber-300 transition-colors flex items-center gap-1.5">
+                      🔒 Unfair Entry &amp; Lock-in
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-500/30 text-[9px] font-mono font-bold">
+                      Illegal Terms
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-snug">
+                    Zero-notice inspections at any hour and full deposit forfeiture for early departure.
+                  </p>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-slate-800/60 text-[10px]">
+                  <span className="text-slate-400 font-mono">Illegal Penalty</span>
+                  <button
+                    type="button"
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                      selectedBench === "adversarial"
+                        ? "bg-amber-600 text-white"
+                        : "bg-slate-800 text-amber-300 group-hover:bg-amber-600 group-hover:text-white"
+                    }`}
+                  >
+                    {selectedBench === "adversarial" ? "Active Demo" : "Click Demo"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Upload or Scan Your Rental Agreement Banner */}
           <div className="glass-panel p-4 sm:p-5 rounded-3xl border border-slate-800/90 bg-[#090d16] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
             <input
               ref={bannerFileInputRef}
@@ -432,10 +575,10 @@ export default function HomePage() {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-sm sm:text-base font-bold text-white">
-                    Ingest Residential Tenancy Draft
+                    Upload or Scan Your Rental Agreement
                   </h3>
                   <span className="px-2 py-0.5 rounded-md bg-indigo-950 text-indigo-300 border border-indigo-500/30 text-[10px] font-mono">
-                    Multimodal OCR &amp; Grounded Audit
+                    Instant AI Scan &amp; Legal Audit
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 mt-0.5">
@@ -489,7 +632,7 @@ export default function HomePage() {
                   </div>
 
                   <p className="text-[11px] text-slate-400 leading-relaxed">
-                    Statutory audit vs. <strong className="text-slate-200">Model Tenancy Act 2021</strong> and Karnataka State Tenancy standards.
+                    Statutory audit vs. <strong className="text-slate-200">Model Tenancy Act 2021</strong>, Transfer of Property Act 1882 &amp; Indian Contract Act 1872.
                   </p>
 
                   <RadialGauge score={analysis?.safetyScore ?? 24} />
@@ -617,19 +760,19 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* 4. Adversarial Evaluation Benches (Screenshot 1) */}
+                {/* 4. Demo Scenarios Presets */}
                 <div className="glass-panel rounded-3xl p-5 border border-slate-800/90 shadow-2xl bg-[#090d16] space-y-3">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
                     <div>
                       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-                        Adversarial Evaluation Benches
+                        Demo Scenarios
                       </h4>
                       <p className="text-[10px] text-slate-400">
-                        Stress-testing against regional rental datasets
+                        Click to test different rental agreements
                       </p>
                     </div>
                     <span className="text-[9px] font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-2 py-0.5 rounded-full font-bold">
-                      GROUNDING MATRIX V4.2
+                      QUICK AUDIT
                     </span>
                   </div>
 
@@ -638,23 +781,23 @@ export default function HomePage() {
                     <div className={`p-3 rounded-2xl border transition-all ${selectedBench === "aggressive" ? "bg-slate-900/90 border-indigo-500/50" : "bg-slate-950/60 border-slate-800"}`}>
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-white">Predatory Bangalore Draft</span>
+                          <span className="text-xs font-bold text-white">💳 Landlord Payment Request</span>
                           <span className="px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-500/30 text-[9px] font-mono">
-                            Score 24/100
+                            High Risk
                           </span>
                         </div>
                         <button
-                          onClick={() => loadSample("sample-lease-aggressive.txt", "aggressive", "Bellandur_Lease_Draft_2026.pdf")}
+                          onClick={() => loadSample("sample-lease-aggressive.txt", "aggressive", "Demo: Landlord Payment Request")}
                           className="px-2.5 py-1 rounded-lg bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold flex items-center gap-1"
                         >
-                          <Check className="w-3 h-3 text-cyan-400" />
-                          <span>{selectedBench === "aggressive" ? "Active" : "Load"}</span>
+                          {selectedBench === "aggressive" && <Check className="w-3 h-3 text-cyan-400" />}
+                          <span>{selectedBench === "aggressive" ? "Active" : "Click Demo"}</span>
                         </button>
                       </div>
                       <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 flex-wrap">
                         <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800">10-Mo Security Deposit</span>
-                        <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800">₹45K Non-Ref Paint</span>
-                        <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800">0-Day Lock-In Forfeit</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800">₹45K Painting Fee</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800">Unlawful Forfeiture</span>
                       </div>
                     </div>
 
@@ -662,16 +805,16 @@ export default function HomePage() {
                     <div className={`p-3 rounded-2xl border transition-all ${selectedBench === "fair" ? "bg-slate-900/90 border-emerald-500/50" : "bg-slate-950/60 border-slate-800"}`}>
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-white">Model Tenancy Act Gold Standard</span>
+                          <span className="text-xs font-bold text-white">⚖️ Fair Standard Agreement</span>
                           <span className="px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/30 text-[9px] font-mono">
-                            Score 92/100
+                            Safe
                           </span>
                         </div>
                         <button
-                          onClick={() => loadSample("sample-lease-fair.txt", "fair", "MTA_Compliant_Standard.pdf")}
+                          onClick={() => loadSample("sample-lease-fair.txt", "fair", "Demo: Fair Standard Agreement")}
                           className="px-2.5 py-1 rounded-lg bg-slate-850 text-slate-300 hover:text-white border border-slate-700 text-[10px] font-bold"
                         >
-                          {selectedBench === "fair" ? "Active" : "Load Draft"}
+                          {selectedBench === "fair" ? "Active" : "Click Demo"}
                         </button>
                       </div>
                       <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 flex-wrap">
@@ -685,21 +828,21 @@ export default function HomePage() {
                     <div className={`p-3 rounded-2xl border transition-all ${selectedBench === "adversarial" ? "bg-slate-900/90 border-amber-500/50" : "bg-slate-950/60 border-slate-800"}`}>
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-white">Adversarial B: Injection &amp; Probe</span>
+                          <span className="text-xs font-bold text-white">🔒 Unfair Entry &amp; Lock-in</span>
                           <span className="px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-500/30 text-[9px] font-mono">
-                            Jailbreak Proof
+                            Illegal Terms
                           </span>
                         </div>
                         <button
-                          onClick={() => loadSample("sample-lease-adversarial.txt", "adversarial", "Adversarial_Injection_Probe.pdf")}
+                          onClick={() => loadSample("sample-lease-adversarial.txt", "adversarial", "Demo: Unfair Entry & Lock-in")}
                           className="px-2.5 py-1 rounded-lg bg-slate-850 text-slate-300 hover:text-white border border-slate-700 text-[10px] font-bold"
                         >
-                          {selectedBench === "adversarial" ? "Active" : "Benchmark"}
+                          {selectedBench === "adversarial" ? "Active" : "Click Demo"}
                         </button>
                       </div>
                       <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 flex-wrap">
-                        <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800">Simulated Sec 45B Phantom Clause</span>
-                        <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800">Null Liability Spoof</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800">0-Day Notice Inspection</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800">Unlawful Lock-in Penalty</span>
                       </div>
                     </div>
                   </div>
@@ -707,20 +850,21 @@ export default function HomePage() {
                   {/* Benchmark footer */}
                   <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono text-slate-400">
                     <span className="text-cyan-400 flex items-center gap-1">
-                      <Zap className="w-3 h-3" /> Vector Latency: 34ms
+                      <Zap className="w-3 h-3" /> Grounded Audit
                     </span>
-                    <span>Corpus: 14 Acts</span>
                     <span className="text-emerald-400">Citation Lock: 100%</span>
                   </div>
                 </div>
               </div>
 
-              {/* Right Column: AI Tenant Advocate Console (col-span-8) */}
+              {/* Right Column: AI Assistant Console (col-span-8) */}
               <div className="xl:col-span-8">
                 <ChatbotAssistant
                   analysis={analysis}
                   documentTitle={documentTitle}
                   selectedClauseToAsk={selectedClauseToAsk}
+                  onLoadDemo={loadSample}
+                  onSelectView={setActiveView}
                 />
               </div>
             </div>
@@ -783,11 +927,43 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                {filteredClauses.map((clause) => (
-                  <ClauseCard key={clause.id} clause={clause} />
-                ))}
-              </div>
+              {!analysis ? (
+                <div className="glass-panel p-8 rounded-3xl border border-slate-800 text-center space-y-4 max-w-lg mx-auto my-8">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto">
+                    <Layers className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-base font-bold text-white">No Agreement Loaded Yet</h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Load a demo scenario to see side-by-side clause inspection and plain-English rewrites, or upload your own rental agreement.
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <button
+                      onClick={() =>
+                        loadSample(
+                          "sample-lease-aggressive.txt",
+                          "aggressive",
+                          "Demo: Landlord Payment Request"
+                        )
+                      }
+                      className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-colors"
+                    >
+                      Load Landlord Payment Request Demo
+                    </button>
+                    <button
+                      onClick={() => setActiveView("upload")}
+                      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
+                    >
+                      Upload Agreement
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredClauses.map((clause) => (
+                    <ClauseCard key={clause.id} clause={clause} />
+                  ))}
+                </div>
+              )}
             </section>
           )}
 
@@ -800,7 +976,7 @@ export default function HomePage() {
                   Upload Agreement (Text or Scanned Photo)
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Upload text files or photos/scans of rental contracts. Gemini 2.5 Flash Vision transcribes the text, segments clauses, and triggers our deterministic evaluation.
+                  Upload text files or photos/scans of rental contracts. Gemini Vision transcribes the text, segments clauses, and triggers our deterministic evaluation.
                 </p>
               </div>
 
@@ -843,7 +1019,37 @@ export default function HomePage() {
           {/* VIEW 4: BASELINE COMPARE */}
           {activeView === "compare" && (
             <div>
-              {compareLoading ? (
+              {!analysis && !compareData ? (
+                <div className="glass-panel p-8 rounded-3xl border border-slate-800 text-center space-y-4 max-w-lg mx-auto my-8">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto">
+                    <Scale className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-base font-bold text-white">No Agreement to Compare Yet</h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Compare any rental contract against the Model Tenancy Act 2021 government standards.
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <button
+                      onClick={() =>
+                        loadSample(
+                          "sample-lease-aggressive.txt",
+                          "aggressive",
+                          "Demo: Landlord Payment Request"
+                        )
+                      }
+                      className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-colors"
+                    >
+                      Compare Landlord Payment Request Demo
+                    </button>
+                    <button
+                      onClick={() => setActiveView("upload")}
+                      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
+                    >
+                      Upload Agreement
+                    </button>
+                  </div>
+                </div>
+              ) : compareLoading ? (
                 <div className="p-12 text-center text-indigo-400 glass-panel rounded-2xl flex items-center justify-center gap-2">
                   <Sparkles className="w-4 h-4 animate-spin" />
                   Diffing draft against Model Tenancy Act baseline...
@@ -860,7 +1066,7 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* VIEW 5: IPL LEGAL KNOWLEDGE BANK & SUPREME COURT PRECEDENTS */}
+          {/* VIEW 5: TENANT RIGHTS & LAWS */}
           {activeView === "knowledge" && (
             <section aria-labelledby="knowledge-heading">
               <IPLKnowledgeBank

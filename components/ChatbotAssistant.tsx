@@ -24,6 +24,7 @@ import {
   Maximize2,
   AlertCircle,
   Gavel,
+  FileText,
 } from "lucide-react";
 import { AnalyzedClause, DocumentAnalysisResult } from "@/lib/clauseEngine";
 import { extractDocumentFacts } from "@/lib/geminiClient";
@@ -53,12 +54,16 @@ interface ChatbotAssistantProps {
   analysis: DocumentAnalysisResult | null;
   documentTitle?: string;
   selectedClauseToAsk?: AnalyzedClause | null;
+  onLoadDemo?: (fileName: string, benchKey: string, title: string) => void;
+  onSelectView?: (view: "chatbot" | "inspector" | "upload" | "compare" | "knowledge") => void;
 }
 
 export default function ChatbotAssistant({
   analysis,
-  documentTitle = "Bellandur_Lease_Draft_2026.pdf",
+  documentTitle = "",
   selectedClauseToAsk,
+  onLoadDemo,
+  onSelectView,
 }: ChatbotAssistantProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -66,137 +71,10 @@ export default function ChatbotAssistant({
   const [copiedClauseId, setCopiedClauseId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize conversation with grounded analysis
+  // Reset messages when document changes — no out-of-the-blue spawn
   useEffect(() => {
-    if (!analysis) return;
-
-    const highRisks = analysis.clauses.filter((c) => c.riskLevel === "HIGH_RISK");
-    const depositClause = analysis.clauses.find((c) => c.clauseType === "security_deposit");
-    const paintingClause = analysis.clauses.find((c) => c.clauseType === "painting_charges");
-    const isDefaultDraft = documentTitle === "Bellandur_Lease_Draft_2026.pdf";
-
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-    // If it is the default Bellandur reference sample, show the reference demonstration thread
-    if (isDefaultDraft) {
-      const initialUserMsg: ChatMessage = {
-        id: "demo-user-1",
-        sender: "user",
-        timestamp: "11:42 AM",
-        text: "Evaluate Section 8 (Security Deposit ₹3,50,000) & Section 14 (Painting ₹45,000 deduction). Are these enforceable under Karnataka law?",
-      };
-
-      const badges: ChatMessage["statutoryBadges"] = [];
-      if (depositClause) {
-        badges.push({
-          title: "Excessive Security Deposit Violation (Cap: 2 Months)",
-          section: "MTA 2021 Sec 11(1)",
-          law: "Model Tenancy Act 2021",
-          explanation:
-            "Under the Model Tenancy Act 2021, Section 11(1), security deposit for residential premises is strictly restricted to a maximum of two months' rent. Demanding 10 months is ultra vires to central statutory policy.",
-        });
-        badges.push({
-          title: "Unconditional Lock-in Forfeiture is an Unenforceable Penalty",
-          section: "Sec 74 Indian Contract Act",
-          law: "Indian Contract Act, 1872",
-          explanation:
-            "Under Section 74 of the Indian Contract Act, 1872 (Kailash Nath Associates v. DDA, Supreme Court 2015), a landlord cannot arbitrarily forfeit the entire deposit as liquidated damages without demonstrating actual mitigation loss or actual tenant-caused damage.",
-        });
-      }
-
-      if (paintingClause) {
-        badges.push({
-          title: "Arbitrary Painting Fee Deduction (Ordinary Wear & Tear Protected)",
-          section: "Sec 108(m) TPA & MTA Sec 15(2)",
-          law: "Transfer of Property Act, 1882",
-          explanation:
-            "Ordinary wear and tear is expressly exempt from tenant liabilities under Section 108(m) of TPA. Fixed lump-sum deductions without itemized tax invoices violate fair tenancy practices. Painting deductions must represent actual restorative repair beyond normal occupancy.",
-        });
-      }
-
-      const initialAssistantMsg: ChatMessage = {
-        id: "demo-asst-1",
-        sender: "assistant",
-        timestamp: "11:42 AM",
-        text: "",
-        unlawfulTermsTitle: "UNLAWFUL TERMS DETECTED IN CLAUSE 8.2 & CLAUSE 14.1",
-        unlawfulTermsSummary:
-          "The landlord demands 10 months security deposit (₹3,50,000) with mandatory total forfeiture upon premature vacancy, plus an automatic ₹45,000 non-refundable deduction for repainting regardless of premises condition.",
-        statutoryBadges: badges,
-        counterDraftClause: {
-          title: "RECOMMENDED SUBSTITUTE CLAUSE 8.2 (READY TO PASTE)",
-          clauseText:
-            '8.2 Security Deposit: The Tenant shall furnish a refundable security deposit equivalent to 2 (two) months\' rent (₹70,000/-), payable upon execution of this agreement. The said deposit shall be fully refunded to the Tenant within 15 days of vacating the premises, subject only to deductions for actual unpaid utility bills or physical damage beyond reasonable wear and tear, backed by genuine tax invoices.',
-        },
-        latencyMs: 38,
-      };
-
-      setMessages([initialUserMsg, initialAssistantMsg]);
-      return;
-    }
-
-    // For User-Uploaded Documents or other benchmarks: DYNAMIC REAL REASONING
-    const dynamicBadges: ChatMessage["statutoryBadges"] = [];
-    highRisks.slice(0, 3).forEach((hr) => {
-      if (hr.citation) {
-        dynamicBadges.push({
-          title: hr.title || hr.clauseLabel,
-          section: `${hr.citation.law} ${hr.citation.section_ref}`,
-          law: hr.citation.law,
-          explanation: hr.riskReason + " " + hr.citation.plain_explanation,
-        });
-      }
-    });
-
-    let topCounterDraft: ChatMessage["counterDraftClause"] | undefined;
-    if (highRisks.length > 0) {
-      const top = highRisks[0];
-      const topLabel = top.clauseLabel.toLowerCase();
-      if (topLabel.includes("deposit")) {
-        topCounterDraft = {
-          title: `RECOMMENDED SUBSTITUTE CLAUSE: ${top.title.toUpperCase()}`,
-          clauseText:
-            'The Tenant shall furnish a refundable security deposit capped at a maximum of 2 (two) months\' rent (under Section 11 of the Model Tenancy Act, 2021). The deposit shall be refunded in full within thirty (30) days of vacating the premises, subject only to deductions for documented unpaid utilities backed by official bills.',
-        };
-      } else if (topLabel.includes("paint") || topLabel.includes("maintenance")) {
-        topCounterDraft = {
-          title: `RECOMMENDED SUBSTITUTE CLAUSE: ${top.title.toUpperCase()}`,
-          clauseText:
-            'The Tenant shall maintain the interior fixtures in good condition. At determination of tenancy, the Tenant shall hand over possession in as good condition as received, reasonable wear and tear excepted (under Section 108(m) of the Transfer of Property Act, 1882). No flat-rate or mandatory painting fees shall be deducted without proof of tenant negligence.',
-        };
-      } else {
-        topCounterDraft = {
-          title: `RECOMMENDED SUBSTITUTE CLAUSE: ${top.title.toUpperCase()}`,
-          clauseText:
-            top.suggestedAction || 'Both parties agree that this clause shall be administered strictly in accordance with statutory guidelines under the Model Tenancy Act, 2021 and reasonable bilateral tenancy standards.',
-        };
-      }
-    }
-
-    const dynamicAssistantMsg: ChatMessage = {
-      id: `asst-upload-${Date.now()}`,
-      sender: "assistant",
-      timestamp: timeStr,
-      text:
-        highRisks.length > 0
-          ? `I have audited ${documentTitle} (${analysis.totalClauses} clauses extracted and verified). The deterministic statutory engine flagged ${highRisks.length} severe deviation(s) from mandatory residential tenant protections. Review the breakdown below or ask me about any clause.`
-          : `✅ Document Ingestion Complete: All ${analysis.totalClauses} clauses in ${documentTitle} comply with Model Tenancy Act 2021 statutory baselines. No severe deviations discovered. Feel free to ask questions about any terms.`,
-      unlawfulTermsTitle:
-        highRisks.length > 0
-          ? `STATUTORY DEVIATIONS DETECTED IN ${highRisks.map((c) => c.title || c.clauseLabel).slice(0, 2).join(" & ").toUpperCase()}`
-          : undefined,
-      unlawfulTermsSummary:
-        highRisks.length > 0
-          ? `${highRisks[0].riskReason}. Verified against statutory benchmarks.`
-          : undefined,
-      statutoryBadges: dynamicBadges.length > 0 ? dynamicBadges : undefined,
-      counterDraftClause: topCounterDraft,
-      latencyMs: 42,
-    };
-
-    setMessages([dynamicAssistantMsg]);
-  }, [analysis, documentTitle]);
+    setMessages([]);
+  }, [documentTitle]);
 
   // When user selects a flagged clause from the left rail
   useEffect(() => {
@@ -262,7 +140,7 @@ export default function ChatbotAssistant({
           counterDraft = {
             title: "RECOMMENDED SUBSTITUTE CLAUSE: SECURITY DEPOSIT & EXIT",
             clauseText:
-              `The Tenant shall furnish a refundable security deposit ${capText} (under Section 11 of the Model Tenancy Act, 2021). The deposit shall be refunded in full within 30 days of vacating the premises, subject only to actual documented unpaid utility bills or physical damage beyond reasonable wear and tear backed by genuine GST invoices. Any arbitrary lock-in penalty is void under Section 74 of the Indian Contract Act, 1872 (Kailash Nath Associates v. DDA).`,
+              `The Tenant shall furnish a refundable security deposit ${capText} (under Section 11 of the Model Tenancy Act, 2021). The deposit shall be refunded in full within 30 days of vacating the premises, subject only to actual documented unpaid utility bills or physical damage beyond reasonable wear and tear backed by genuine GST invoices. Any arbitrary lock-in penalty is void under Section 74 of the Indian Contract Act, 1872 (Kailash Nath Associates v. Delhi Development Authority, (2015) 4 SCC 136).`,
           };
         } else if (qLower.includes("paint") || qLower.includes("wear") || qLower.includes("tear") || qLower.includes("maintenance")) {
           counterDraft = {
@@ -352,7 +230,7 @@ export default function ChatbotAssistant({
 
   return (
     <div className="glass-panel rounded-3xl border border-slate-800/90 flex flex-col h-[750px] shadow-2xl overflow-hidden bg-[#090d16]">
-      {/* 1. Header Bar matching Screenshot 2 */}
+      {/* 1. Header Bar */}
       <div className="p-4 bg-slate-900/90 border-b border-slate-800/90 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-indigo-600/30">
@@ -361,123 +239,331 @@ export default function ChatbotAssistant({
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
-                VerifiedVakil AI Tenant Advocate
+                VerifiedVakil Assistant
               </h2>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-950/60 text-cyan-300 border border-cyan-500/30 text-[10px] font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                Statutory Grounding &amp; Counter-Drafting Active
+                Tenant Rights Active
               </span>
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5">
-              Model Tenancy Act 2021 • Karnataka Rent Act 1999 • Supreme Court of India Precedents
+              Model Tenancy Act 2021 • Supreme Court Precedents • State Rent Rules
             </p>
           </div>
         </div>
 
-        {/* Action icons */}
+        {/* Action icons & Clear button */}
         <div className="flex items-center gap-2">
+          {messages.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setMessages([])}
+              className="px-2.5 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/60 transition-colors flex items-center gap-1"
+              title="Reset conversation"
+            >
+              <RefreshCw className="w-3 h-3" />
+              <span>Reset</span>
+            </button>
+          )}
           <button
             type="button"
             className="p-2 rounded-xl bg-slate-800/70 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-            title="Listen to legal summary"
-            aria-label="Text-to-speech audio summary"
+            title="Listen to summary"
+            aria-label="Audio summary"
           >
             <Volume2 className="w-4 h-4" />
           </button>
           <button
             type="button"
             className="p-2 rounded-xl bg-slate-800/70 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-            title="Download brief"
-            aria-label="Download legal brief"
+            title="Download report"
+            aria-label="Download legal summary"
           >
             <Download className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* 2. Ingestion Summary Banner */}
-      <div className="p-3.5 bg-gradient-to-r from-indigo-950/40 via-slate-900 to-cyan-950/30 border-b border-slate-800/80 flex items-start gap-3">
-        <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 shrink-0 mt-0.5">
-          <Sparkles className="w-4 h-4" />
-        </div>
-        <div className="space-y-1 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-white">Contract Ingestion &amp; Grounding Complete</span>
-            <span className="px-2 py-0.5 rounded-md bg-indigo-600/30 text-indigo-300 font-mono text-[10px] border border-indigo-500/30">
-              {analysis?.totalClauses || 0} Clauses Checked
-            </span>
+      {/* 2. Agreement Summary Banner */}
+      {analysis && (
+        <div className="p-3.5 bg-gradient-to-r from-indigo-950/40 via-slate-900 to-cyan-950/30 border-b border-slate-800/80 flex items-start gap-3">
+          <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 shrink-0 mt-0.5">
+            <Sparkles className="w-4 h-4" />
           </div>
-          <p className="text-slate-300 text-[11px] leading-relaxed">
-            Loaded <strong className="text-white">{documentTitle}</strong> ({analysis?.totalClauses || 0} Clauses Audited). The AI advocate has detected{" "}
-            <strong className="text-rose-400">{analysis?.riskCounts.high || 0} severe deviation(s)</strong> from statutory tenant ceilings. Use the chat console below or quick prompts to generate legally binding counter-amendments.
-          </p>
+          <div className="space-y-1 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-white">Agreement Loaded</span>
+              <span className="px-2 py-0.5 rounded-md bg-indigo-600/30 text-indigo-300 font-mono text-[10px] border border-indigo-500/30">
+                {analysis.totalClauses} Clauses Audited
+              </span>
+            </div>
+            <p className="text-slate-300 text-[11px] leading-relaxed">
+              <strong className="text-white">{documentTitle || "Current Agreement"}</strong>: Found{" "}
+              <strong className="text-rose-400">{analysis.riskCounts.high} high-risk</strong> and{" "}
+              <strong className="text-amber-400">{analysis.riskCounts.moderate} moderate-risk</strong> terms. Click a question below or ask in the box to get legal advice and fair replacement clauses.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 3. Messages Stream */}
+      {/* 3. Messages Stream / Empty Welcome State */}
       <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs bg-[#070b13]/60">
-        {messages.map((m) => (
-          <div key={m.id} className="space-y-2">
-            {/* Message Row */}
-            <div
-              className={`flex items-start gap-3 ${
-                m.sender === "user" ? "flex-row-reverse" : "flex-row"
-              }`}
-            >
-              {/* Avatar */}
-              <div
-                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-white font-bold text-xs ${
-                  m.sender === "user"
-                    ? "bg-indigo-600 shadow-md shadow-indigo-600/30"
-                    : "bg-gradient-to-tr from-cyan-600 to-indigo-600 shadow-md shadow-cyan-600/20"
-                }`}
-              >
-                {m.sender === "user" ? "AK" : <Scale className="w-4 h-4" />}
-              </div>
-
-              {/* Bubble */}
-              <div
-                className={`max-w-[90%] sm:max-w-[85%] rounded-2xl p-4 leading-relaxed shadow-lg ${
-                  m.sender === "user"
-                    ? "bg-slate-900 border border-slate-800 text-slate-100 rounded-tr-sm"
-                    : "bg-slate-950/90 border border-slate-800/90 text-slate-200 rounded-tl-sm space-y-3"
-                }`}
-              >
-                {/* Header info */}
-                <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400 mb-1 pb-1 border-b border-slate-800/60">
-                  <span className="font-semibold text-slate-300">
-                    {m.sender === "user" ? "Tenant (Aditya K.)" : "VerifiedVakil AI Tenant Advocate"}
-                  </span>
-                  <span className="font-mono text-[10px] text-slate-500">{m.timestamp}</span>
+        {messages.length === 0 ? (
+          <div className="h-full flex flex-col justify-center items-center py-6 px-3">
+            {!analysis ? (
+              /* No document loaded yet: show clean Welcome and Demo Scenarios */
+              <div className="max-w-xl w-full text-center space-y-6">
+                <div className="w-14 h-14 rounded-3xl bg-gradient-to-tr from-indigo-600 to-cyan-400 mx-auto flex items-center justify-center shadow-xl shadow-cyan-500/20">
+                  <Scale className="w-7 h-7 text-white" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-bold text-white tracking-tight">
+                    Welcome to VerifiedVakil
+                  </h3>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+                    Check your rental agreement against Indian tenancy laws. Detect illegal deductions, excessive deposits, and unannounced landlord visits.
+                  </p>
                 </div>
 
-                {/* Plain text / Question */}
-                {m.text && <p className="whitespace-pre-wrap leading-relaxed">{m.text}</p>}
-
-                {/* Refusal Banner (Test A) */}
-                {m.isRefusal && (
-                  <div className="p-2.5 rounded-xl bg-rose-950/50 border border-rose-500/40 text-rose-200 text-xs font-semibold flex items-center gap-2">
-                    <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
-                    <span>Citation-Lock Refusal: Architectural block triggered on unverified authority.</span>
+                <div className="space-y-3 text-left">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                    Select a Demo to Test
                   </div>
-                )}
 
-                {/* Unlawful terms alert banner (Screenshot 2) */}
-                {m.unlawfulTermsTitle && (
-                  <div className="p-3.5 rounded-xl bg-rose-950/30 border border-rose-500/40 space-y-1">
-                    <div className="text-xs font-bold text-rose-300 flex items-center gap-1.5 uppercase tracking-wider">
-                      <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                      {m.unlawfulTermsTitle}
+                  {/* Demo Card 1: Landlord Payment Request */}
+                  <div
+                    onClick={() =>
+                      onLoadDemo?.(
+                        "sample-lease-aggressive.txt",
+                        "aggressive",
+                        "Demo: Landlord Payment Request"
+                      )
+                    }
+                    className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/40 hover:border-indigo-400 cursor-pointer transition-all duration-200 group flex items-start justify-between gap-3 shadow-lg"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-white group-hover:text-indigo-300 transition-colors">
+                          💳 Demo: Landlord Payment Request
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-500/30 text-[9px] font-mono font-bold">
+                          High Risk
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 leading-snug">
+                        Landlord demands 10-month deposit (₹3,50,000) and mandatory ₹45,000 painting deduction upon moving out.
+                      </p>
                     </div>
-                    <p className="text-[11px] text-rose-200/90 leading-relaxed font-sans">
-                      {m.unlawfulTermsSummary}
-                    </p>
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] shrink-0 transition-colors shadow-md"
+                    >
+                      Load Demo
+                    </button>
                   </div>
-                )}
 
-                {/* Statutory Badges Stack (Screenshot 2) */}
-                {m.statutoryBadges && m.statutoryBadges.length > 0 && (
-                  <div className="space-y-2 pt-1">
+                  {/* Demo Card 2: Fair Standard Agreement */}
+                  <div
+                    onClick={() =>
+                      onLoadDemo?.(
+                        "sample-lease-fair.txt",
+                        "fair",
+                        "Demo: Fair Standard Agreement"
+                      )
+                    }
+                    className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 cursor-pointer transition-all duration-200 group flex items-start justify-between gap-3"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">
+                          ⚖️ Demo: Fair Standard Agreement
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/30 text-[9px] font-mono font-bold">
+                          Fair Model
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 leading-snug">
+                        Government Model Tenancy Act compliant lease: 2-month deposit cap, 24-hr written notice, and wear &amp; tear protection.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 group-hover:bg-emerald-600 text-slate-300 group-hover:text-white font-bold text-[11px] shrink-0 transition-colors"
+                    >
+                      Load Demo
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Agreement is loaded: Show clean summary & interactive question cards */
+              <div className="max-w-xl w-full space-y-4 text-left">
+                <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800/90 space-y-3 shadow-xl">
+                  <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-white">
+                          {documentTitle || "Rental Agreement"}
+                        </div>
+                        <div className="text-[10px] text-slate-400">
+                          {analysis.totalClauses} Clauses Audited under Model Tenancy Act
+                        </div>
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-500/30 text-[10px] font-mono font-bold">
+                      {analysis.riskCounts.high} Issues Flagged
+                    </span>
+                  </div>
+
+                  {/* Summary of key issues found */}
+                  <div className="space-y-2">
+                    <div className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                      Key Concerns Detected:
+                    </div>
+                    {analysis.clauses
+                      .filter((c) => c.riskLevel === "HIGH_RISK")
+                      .slice(0, 2)
+                      .map((c, i) => (
+                        <div
+                          key={i}
+                          className="p-2.5 rounded-xl bg-rose-950/30 border border-rose-500/30 text-[11px] text-slate-300 leading-snug space-y-1"
+                        >
+                          <div className="font-bold text-rose-300 flex items-center gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                            <span>{c.title}</span>
+                          </div>
+                          <p className="text-slate-300 text-[10px]">{c.riskReason}</p>
+                        </div>
+                      ))}
+                  </div>
+
+                  {/* Action prompt chips */}
+                  <div className="pt-2 border-t border-slate-800/80 space-y-2">
+                    <div className="text-[11px] font-bold text-cyan-300 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Click a question to get instant legal guidance:</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleSend(
+                            "Are the 10-month deposit and ₹45,000 painting fee legal under Indian law?"
+                          )
+                        }
+                        className="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 hover:border-indigo-500 text-left text-[11px] text-slate-200 transition-all font-medium flex items-center justify-between group"
+                      >
+                        <span>⚖️ Are deposit &amp; painting fees legal?</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleSend(
+                            "Draft a polite WhatsApp message to my landlord negotiating the 10-month deposit and painting deduction, citing statutory law."
+                          )
+                        }
+                        className="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 hover:border-indigo-500 text-left text-[11px] text-slate-200 transition-all font-medium flex items-center justify-between group"
+                      >
+                        <span>💬 Draft WhatsApp message to landlord</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleSend(
+                            "Under the Model Tenancy Act (2-month cap), how much of my deposit should legally be refunded?"
+                          )
+                        }
+                        className="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 hover:border-indigo-500 text-left text-[11px] text-slate-200 transition-all font-medium flex items-center justify-between group"
+                      >
+                        <span>💰 Calculate my legal refund amount</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleSend(
+                            "Give me a fair substitute clause for the security deposit and wear & tear."
+                          )
+                        }
+                        className="p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 hover:border-indigo-500 text-left text-[11px] text-slate-200 transition-all font-medium flex items-center justify-between group"
+                      >
+                        <span>📝 Generate fair replacement clause</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          messages.map((m) => (
+            <div key={m.id} className="space-y-2">
+              {/* Message Row */}
+              <div
+                className={`flex items-start gap-3 ${
+                  m.sender === "user" ? "flex-row-reverse" : "flex-row"
+                }`}
+              >
+                {/* Avatar */}
+                <div
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-white font-bold text-xs ${
+                    m.sender === "user"
+                      ? "bg-indigo-600 shadow-md shadow-indigo-600/30"
+                      : "bg-gradient-to-tr from-cyan-600 to-indigo-600 shadow-md shadow-cyan-600/20"
+                  }`}
+                >
+                  {m.sender === "user" ? "AK" : <Scale className="w-4 h-4" />}
+                </div>
+
+                {/* Bubble */}
+                <div
+                  className={`max-w-[90%] sm:max-w-[85%] rounded-2xl p-4 leading-relaxed shadow-lg ${
+                    m.sender === "user"
+                      ? "bg-slate-900 border border-slate-800 text-slate-100 rounded-tr-sm"
+                      : "bg-slate-950/90 border border-slate-800/90 text-slate-200 rounded-tl-sm space-y-3"
+                  }`}
+                >
+                  {/* Header info */}
+                  <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400 mb-1 pb-1 border-b border-slate-800/60">
+                    <span className="font-semibold text-slate-300">
+                      {m.sender === "user" ? "You (Tenant)" : "VerifiedVakil Legal Assistant"}
+                    </span>
+                    <span className="font-mono text-[10px] text-slate-500">{m.timestamp}</span>
+                  </div>
+
+                  {/* Plain text / Question */}
+                  {m.text && <p className="whitespace-pre-wrap leading-relaxed">{m.text}</p>}
+
+                  {/* Refusal Banner (Test A) */}
+                  {m.isRefusal && (
+                    <div className="p-2.5 rounded-xl bg-rose-950/50 border border-rose-500/40 text-rose-200 text-xs font-semibold flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
+                      <span>Citation-Lock Refusal: Architectural block triggered on unverified authority.</span>
+                    </div>
+                  )}
+
+                  {/* Unlawful terms alert banner */}
+                  {m.unlawfulTermsTitle && (
+                    <div className="p-3.5 rounded-xl bg-rose-950/30 border border-rose-500/40 space-y-1">
+                      <div className="text-xs font-bold text-rose-300 flex items-center gap-1.5 uppercase tracking-wider">
+                        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                        {m.unlawfulTermsTitle}
+                      </div>
+                      <p className="text-[11px] text-rose-200/90 leading-relaxed font-sans">
+                        {m.unlawfulTermsSummary}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Statutory Badges Stack */}
+                  {m.statutoryBadges && m.statutoryBadges.length > 0 && (
+                    <div className="space-y-2 pt-1">
                     {m.statutoryBadges.map((badge, bIdx) => (
                       <div
                         key={bIdx}
@@ -542,7 +628,8 @@ export default function ChatbotAssistant({
               </div>
             </div>
           </div>
-        ))}
+        ))
+      )}
 
         {loading && (
           <div className="flex items-center gap-2 text-xs text-cyan-300 p-3 italic bg-slate-950/40 rounded-xl border border-slate-800/80">
@@ -554,10 +641,10 @@ export default function ChatbotAssistant({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 4. Quick Prompt Pills Row (Screenshot 2: PROMPTS) */}
+      {/* 4. Quick Question Pills Row */}
       <div className="px-4 py-2 bg-slate-950/80 border-t border-slate-800/80 flex items-center gap-2 overflow-x-auto text-xs">
         <span className="text-[10px] uppercase tracking-wider text-slate-400 font-mono font-bold shrink-0">
-          PROMPTS:
+          Suggestions:
         </span>
         {quickPrompts.map((qp, idx) => (
           <button

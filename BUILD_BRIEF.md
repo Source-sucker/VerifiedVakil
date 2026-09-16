@@ -382,3 +382,60 @@ Run the full non-negotiables list once more, then verify the four official items
 3. Project Description field has both the brief overview and the current GenAI mapping table
 4. Demo video is under 4:00 and matches whatever shipped last
 
+---
+
+## 14. PS Requirements Audit & Reprioritized 10-Day Execution Plan
+
+### 14.1 Audit Findings & Immediate Remediation
+
+#### Critical Finding #1: Citation-Lock Hygiene Standard (Mandatory Full Formal Citations)
+* **Risk Identified:** Informal case names or bare surname fragments (e.g. "Bishandas", "Anthony", "Fateh Chand", or "Kailash Nath") in UI cards, suggestions, or chat outputs can look identical to LLM hallucinations/fabrications—the exact failure mode VerifiedVakil is built to prevent.
+* **Precedents Verified & Grounded:**
+  1. **Fateh Chand v. Balkishan Dass**, (1964) 1 SCR 515 / AIR 1963 SC 1405 (5-Judge Constitution Bench): The foundational Indian contract law precedent under Section 74 establishing that penalty/forfeiture clauses are unenforceable; compensation is strictly capped at genuine, proven pre-estimates of reasonable loss.
+  2. **Kailash Nath Associates v. Delhi Development Authority**, (2015) 4 SCC 136 (Supreme Court of India): Reaffirms *Fateh Chand*; SC struck down arbitrary forfeiture of ₹78 lakh earnest money because the authority incurred no actual financial loss. Directly governs security deposit and lock-in penalty disputes.
+  3. **Bishandas & Ors. v. State of Punjab & Ors.**, AIR 1961 SC 1570 / (1961) 2 SCR 189 (5-Judge Constitution Bench): Affirms that a person in peaceful possession cannot be dispossessed by executive or extra-judicial force without due process of law, even after agreement expiry.
+  4. **Anthony v. K.C. Ittoop & Sons & Ors.**, (2000) 6 SCC 394 / AIR 2000 SC 2647 (Supreme Court of India, Division Bench of K.T. Thomas & R.P. Sethi, JJ., 01-08-2000): Held that an unregistered lease exceeding 11 months cannot create a lease under Section 107 of the Transfer of Property Act and Section 49 of the Registration Act, but acceptance of rent creates a valid month-to-month tenancy terminable by 15 days' notice under Section 106 of the Transfer of Property Act, 1882. This is the landmark legal basis for 11-month residential agreements in India.
+* **Codebase Enforcement:**
+  - `lib/iplLawKnowledgeBase.ts` & `lib/iplPrecedentsTable.json`: All entries formatted as `Full Case Name + Year + Court/Bench + Reporter Citation`. Discussion phrases and intelligent suggestions use complete citations with zero bare surnames.
+  - `lib/geminiClient.ts`: Citation-lock system instruction explicitly forbids emitting bare surnames or informal fragments; offline fallback templates use complete formal citations.
+  - `components/ChatbotAssistant.tsx`: Counter-draft recommendation clauses explicitly cite full official citations.
+
+#### Critical Finding #2: Video Walkthrough "No Pre-fills" Rule
+* **PS Constraint:** *"Live Testing — No Pre-fills — Enter data live on screen; do not use pre-filled forms."*
+* **Architectural Strategy:**
+  - **Demo Scenarios Cockpit:** Retained in the web application with clear labeling as an **"Evaluator Hands-On Testing Quick-Launch"** for judges testing the live URL themselves.
+  - **Demo Video Recording Protocol:** The official 4-minute submission video must NEVER click a pre-filled demo button to populate the agreement. The video will demonstrate live data entry:
+    1. Pasting raw agreement text live on screen into the "Paste Text" tab, OR
+    2. Uploading a document photo/PDF live on screen via the OCR engine (`/api/ocr` + client Tesseract worker).
+
+---
+
+### 14.2 Official PS Requirements Status (Current State)
+
+| Requirement | Current Status | Verification & Target |
+|---|---|---|
+| **Live Deployed URL** | Ready for Vercel deployment | Verified zero TypeScript build errors (`npx tsc --noEmit`); fast stateless serverless architecture. |
+| **Public GitHub Repo < 10MB** | **2.7 MB** (`du -sh .git`) | Healthy headroom (>70% under 10MB budget). Strict `.gitignore` discipline prevents binary bloat. |
+| **Project Description (Overview + GenAI Mapping)** | Drafted & synced | Uses §10 template; GenAI mapping table maps 1:1 to exact files (`lib/geminiClient.ts`, `/app/api/ask/route.ts`, etc.). |
+| **Demo Video (< 4 minutes)** | Scripted around Live Testing | Script updated to use live paste / live OCR upload only to comply strictly with the "No Pre-fills" rule. |
+
+---
+
+### 14.3 Reprioritized 10-Day Roadmap (16 Sept → 26 Sept Deadline)
+
+1. **Do Now (Completed):**
+   - Eliminate all bare surnames and informal case law fragments across knowledge bases, citation tables, and prompt instructions.
+   - Ground and trace every precedent (*Kailash Nath*, *Fateh Chand*, *Bishandas*, *Anthony*) to official Supreme Court citations and Indian Kanoon / Bare Act sources.
+2. **Do (Priority 1): Expand Adversarial & Citation-Lock Probe Suite**
+   - Add automated test probes for fabricated case citations (e.g. fake High Court judgments, fictitious tenancy sections like MTA §45B).
+   - Verify deterministic override protection remains 100% impenetrable.
+3. **Do If Time Allows (Priority 2): WhatsApp & Legal-Notice Dispute Exporter**
+   - Add a one-click exporter generating formal WhatsApp negotiation scripts and structured lawyer dispute notices with pre-filled citations.
+   - Maps directly to the PS bullet: *"Preparing information for a professional"*.
+4. **Reconsider / Cap (Strict Boundary): Multi-State Grounding**
+   - Reject sprawling across 3+ states (Maharashtra, Delhi, Tamil Nadu) without official gazette verification.
+   - Cap strictly at at most **one** additional state (e.g., Karnataka Rent Act or Maharashtra Rent Control Act) with 100% primary source verification, or retain national Model Tenancy Act + Transfer of Property Act standard to avoid legal drift.
+5. **Defer (Explicitly Deprioritized): Vernacular Audio / TTS**
+   - Defer speech synthesis to keep scope locked. Audio adds file weight and introduces subtle fidelity drift in translated legal nuances under tight time constraints.
+
+

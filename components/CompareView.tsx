@@ -32,10 +32,10 @@ export default function CompareView({
       <div>
         <h2 id="compare-heading" className="text-xl font-bold text-white flex items-center gap-2">
           <Scale className="w-5 h-5 text-indigo-400" aria-hidden="true" />
-          Vertical B: Baseline Contract Comparison
+          Compare with Fair Government Rules
         </h2>
         <p className="text-sm text-slate-400 mt-1">
-          Side-by-side term diff: Your uploaded agreement versus the Model Tenancy Act (MTA) statutory baseline.
+          Side-by-side comparison: Your agreement versus the Model Tenancy Act (MTA) government baseline.
         </p>
       </div>
 

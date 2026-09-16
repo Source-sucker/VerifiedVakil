@@ -10,7 +10,7 @@
       "statute_ref": "Indian Contract Act, 1872 — Section 74",
       "key_principle": "Earnest money or security deposit cannot be forfeited arbitrarily. Section 74 mandates that damages are payable only to the extent of actual proven loss. Unreasonable forfeiture of an entire deposit without proving loss constitutes an unlawful penalty.",
       "tenant_benefit": "Landlord cannot pocket the full security deposit when tenant vacates early if the landlord incurs no actual financial loss or quickly re-rents the property.",
-      "discussion_phrase": "As established by the Supreme Court in Kailash Nath Associates v. DDA, deposit deductions can only compensate for actual proven damages, not punitive forfeiture.",
+      "discussion_phrase": "As established by the Supreme Court in Kailash Nath Associates v. Delhi Development Authority, (2015) 4 SCC 136, deposit deductions under Section 74 can only compensate for actual proven damages, not punitive forfeiture.",
       "source_url": "https://indiankanoon.org/doc/171221379/"
     },
     {
@@ -23,7 +23,7 @@
       "statute_ref": "Indian Contract Act, 1872 — Section 74",
       "key_principle": "The Indian Contract Act explicitly does not recognize penalty clauses. Even if an agreement states an amount 'shall stand forfeited', courts will only award genuine pre-estimated reasonable compensation.",
       "tenant_benefit": "Nullifies contract clauses claiming 100% forfeiture of security deposit or multiple months rent for premature departure during lock-in periods.",
-      "discussion_phrase": "Under Section 74 as held in Fateh Chand, contract penalty clauses are void to the extent of unreasonable enrichment; compensation is capped at actual justifiable expenses.",
+      "discussion_phrase": "Under Section 74 of the Indian Contract Act, as held by the Constitution Bench in Fateh Chand v. Balkishan Dass, (1964) 1 SCR 515 / AIR 1963 SC 1405, contract penalty clauses are void to the extent of unreasonable enrichment; compensation is capped strictly at actual justifiable loss.",
       "source_url": "https://indiankanoon.org/doc/737703/"
     },
     {
@@ -36,7 +36,7 @@
       "statute_ref": "Indian Contract Act, 1872 — Section 74",
       "key_principle": "Forfeiture of entire remaining lock-in period rent is an unenforceable penalty under Section 74 unless the landlord proves the premises remained vacant and incurred actual unmitigated loss.",
       "tenant_benefit": "Bars landlords from extracting 6-12 months of unearned rent when a tenant moves out early due to job relocation or emergency.",
-      "discussion_phrase": "Under Section 74 and Fateh Chand, lock-in penalties cannot exceed the landlord's actual loss during vacancy; rent cannot be collected twice if re-let.",
+      "discussion_phrase": "Under Section 74 and the Constitution Bench ruling in Fateh Chand v. Balkishan Dass, (1964) 1 SCR 515 / AIR 1963 SC 1405, lock-in penalties cannot exceed the landlord's actual loss during vacancy; rent cannot be collected twice if re-let.",
       "source_url": "https://indiankanoon.org/doc/737703/"
     },
     {
@@ -44,38 +44,38 @@
       "clause_type": "registration_duration",
       "case_title": "Associated Hotels of India Ltd. v. R.N. Kapoor",
       "court": "Supreme Court of India",
-      "citation": "(1960) 1 SCR 368",
+      "citation": "(1960) 1 SCR 368 / AIR 1959 SC 1262",
       "year": 1960,
       "statute_ref": "Transfer of Property Act, 1882 — Section 105 & Indian Easements Act, 1882 — Section 52",
       "key_principle": "Laid down the cardinal test distinguishing a lease from a license. If the document gives exclusive possession of the property against all others, it creates a lease/tenancy, regardless of whether the agreement is titled 'Leave and License'.",
       "tenant_benefit": "Protects tenants from landlords using artificial 'license' titles to bypass statutory tenancy protections when exclusive possession of the flat was handed over.",
-      "discussion_phrase": "Under the Supreme Court ruling in Associated Hotels, granting exclusive physical possession establishes tenancy protections that cannot be stripped simply by labeling the contract a license.",
+      "discussion_phrase": "Under the Supreme Court ruling in Associated Hotels of India Ltd. v. R.N. Kapoor, (1960) 1 SCR 368, granting exclusive physical possession establishes tenancy protections that cannot be stripped simply by labeling the contract a license.",
       "source_url": "https://indiankanoon.org/doc/1831818/"
     },
     {
       "id": "cm_beena_2004",
       "clause_type": "unilateral_termination",
-      "case_title": "C.M. Beena v. P.N. Ramachandra Rao",
+      "case_title": "C.M. Beena & Anr. v. P.N. Ramachandra Rao",
       "court": "Supreme Court of India",
       "citation": "(2004) 3 SCC 595",
       "year": 2004,
       "statute_ref": "Transfer of Property Act, 1882 — Section 105",
       "key_principle": "Courts look past clever drafting to examine the real substance, conduct of parties, and operational reality. A licensee who exercises exclusive control and custody is legally treated with tenancy rights, preventing arbitrary unilateral summary cancellation.",
       "tenant_benefit": "Prevents landlords from asserting arbitrary summary eviction rights by disguising a residential rental agreement.",
-      "discussion_phrase": "The Supreme Court in C.M. Beena established that operational possession and conduct prevail over one-sided contractual terminology; termination rights must be reciprocal.",
+      "discussion_phrase": "The Supreme Court in C.M. Beena & Anr. v. P.N. Ramachandra Rao, (2004) 3 SCC 595 established that operational possession and conduct prevail over one-sided contractual terminology; termination rights must be reciprocal.",
       "source_url": "https://indiankanoon.org/doc/1350616/"
     },
     {
       "id": "bishandas_1961",
       "clause_type": "landlord_entry",
-      "case_title": "Bishandas & Ors v. State of Punjab & Ors",
+      "case_title": "Bishandas & Ors. v. State of Punjab & Ors.",
       "court": "Supreme Court of India (Constitution Bench)",
       "citation": "(1961) 2 SCR 189 / AIR 1961 SC 1570",
       "year": 1961,
       "statute_ref": "Constitution of India — Article 21 & Specific Relief Act, 1963 — Section 6",
       "key_principle": "No person in peaceful possession of immovable property can be evicted by force or executive action without due process of law, even after the expiration of a license or lease term.",
       "tenant_benefit": "Landlords are strictly prohibited from changing door locks, disconnecting water/power, or using muscle power to throw out a tenant.",
-      "discussion_phrase": "Under the Constitution Bench ruling in Bishandas, any dispossession without due process of law or court order is illegal, even if the agreement has expired.",
+      "discussion_phrase": "Under the Constitution Bench ruling in Bishandas & Ors. v. State of Punjab, AIR 1961 SC 1570 / (1961) 2 SCR 189, any dispossession without due process of law or court order is illegal, even if the agreement has expired.",
       "source_url": "https://indiankanoon.org/doc/121853/"
     },
     {
@@ -88,20 +88,20 @@
       "statute_ref": "Specific Relief Act, 1963 — Section 6 & Transfer of Property Act, 1882 — Section 108(c)",
       "key_principle": "A person in settled possession is entitled to protect their possession and quiet enjoyment against the entire world, including the true owner, except through lawful court decree.",
       "tenant_benefit": "Protects tenant against unannounced landlord entry, physical harassment, or arbitrary lockouts.",
-      "discussion_phrase": "Settled possession is legally protected under Ramesh Chand Ardawatiya; landlords cannot disrupt peaceful possession outside judicial process.",
+      "discussion_phrase": "Settled possession is legally protected under the Supreme Court ruling in Ramesh Chand Ardawatiya v. Anil Panjwani, (2003) 7 SCC 350; landlords cannot disrupt peaceful possession outside judicial process.",
       "source_url": "https://indiankanoon.org/doc/1062635/"
     },
     {
       "id": "anthony_2000",
       "clause_type": "notice_period",
-      "case_title": "Anthony v. K.C. Ittoop & Sons & Ors",
-      "court": "Supreme Court of India",
-      "citation": "(2000) 6 SCC 394",
+      "case_title": "Anthony v. K.C. Ittoop & Sons & Ors.",
+      "court": "Supreme Court of India (Division Bench)",
+      "citation": "(2000) 6 SCC 394 / AIR 2000 SC 2647",
       "year": 2000,
       "statute_ref": "Registration Act, 1908 — Section 17 & Transfer of Property Act, 1882 — Section 106",
       "key_principle": "When an unregistered lease exceeding 11 months is executed, it fails to create a long-term lease due to Section 49 of the Registration Act, but creates a month-to-month tenancy terminable by 15 days notice under Section 106 of TPA.",
       "tenant_benefit": "Explains why standard residential agreements in India are limited to 11 months to avoid compulsory registration and stamp duty expenses while retaining mutual termination flexibility.",
-      "discussion_phrase": "As clarified in Anthony v. K.C. Ittoop, 11-month leases operate under monthly tenancy norms of Section 106 TPA to maintain mutual flexibility.",
+      "discussion_phrase": "As clarified by the Supreme Court in Anthony v. K.C. Ittoop & Sons & Ors., (2000) 6 SCC 394, 11-month leases operate under monthly tenancy norms of Section 106 TPA to maintain mutual flexibility.",
       "source_url": "https://indiankanoon.org/doc/1359345/"
     },
     {
