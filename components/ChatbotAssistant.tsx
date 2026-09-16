@@ -20,6 +20,7 @@ import {
   Paperclip,
   Mic,
   Volume2,
+  VolumeX,
   Download,
   Maximize2,
   AlertCircle,
@@ -54,27 +55,44 @@ interface ChatbotAssistantProps {
   analysis: DocumentAnalysisResult | null;
   documentTitle?: string;
   selectedClauseToAsk?: AnalyzedClause | null;
+  pendingQuestion?: string | null;
+  onClearPendingQuestion?: () => void;
   onLoadDemo?: (fileName: string, benchKey: string, title: string) => void;
   onSelectView?: (view: "chatbot" | "inspector" | "upload" | "compare" | "knowledge") => void;
+  onUploadFileText?: (text: string, title: string) => void;
 }
 
 export default function ChatbotAssistant({
   analysis,
   documentTitle = "",
   selectedClauseToAsk,
+  pendingQuestion,
+  onClearPendingQuestion,
   onLoadDemo,
   onSelectView,
+  onUploadFileText,
 }: ChatbotAssistantProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [copiedClauseId, setCopiedClauseId] = useState<string | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const paperclipInputRef = useRef<HTMLInputElement>(null);
 
   // Reset messages when document changes — no out-of-the-blue spawn
   useEffect(() => {
     setMessages([]);
   }, [documentTitle]);
+
+  // When external screen passes a pending question (e.g. from IPLKnowledgeBank)
+  useEffect(() => {
+    if (pendingQuestion) {
+      handleSend(pendingQuestion);
+      onClearPendingQuestion?.();
+    }
+  }, [pendingQuestion]);
 
   // When user selects a flagged clause from the left rail
   useEffect(() => {
@@ -92,6 +110,121 @@ export default function ChatbotAssistant({
     navigator.clipboard.writeText(text);
     setCopiedClauseId(id);
     setTimeout(() => setCopiedClauseId(null), 2000);
+  };
+
+  const handleToggleAudioSummary = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      alert("Audio speech synthesis is not supported in this browser.");
+      return;
+    }
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+    let textToRead = "";
+    if (messages.length > 0) {
+      const lastAsstMsg = [...messages].reverse().find((m) => m.sender === "assistant");
+      if (lastAsstMsg) {
+        textToRead = lastAsstMsg.text;
+      }
+    }
+    if (!textToRead && analysis) {
+      textToRead = `VerifiedVakil analysis for ${documentTitle || "your rental agreement"}. Overall safety score is ${analysis.safetyScore} out of 100. We found ${analysis.riskCounts.high} high-risk and ${analysis.riskCounts.moderate} moderate-risk clauses. Ask any question to counter-draft fair terms.`;
+    }
+    if (!textToRead) {
+      textToRead = "Welcome to VerifiedVakil. Please load a rental agreement to audit clauses and verify tenant protection rights.";
+    }
+    const cleanText = textToRead.replace(/[*#_`>]/g, "").replace(/\n+/g, ". ");
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    setIsSpeaking(true);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleDownloadChatReport = () => {
+    let report = `# VerifiedVakil — Legal Assistant Consultation Report\n\n`;
+    report += `**Generated:** ${new Date().toLocaleString("en-IN")}\n`;
+    report += `**Agreement:** ${documentTitle || "Current Agreement"}\n`;
+    if (analysis) {
+      report += `**Property Safety Score:** ${analysis.safetyScore}/100\n`;
+      report += `**Risk Flag Counts:** ${analysis.riskCounts.high} High, ${analysis.riskCounts.moderate} Moderate, ${analysis.riskCounts.standard} Standard\n\n`;
+    }
+    report += `## Consultation Q&A History\n\n`;
+    if (messages.length === 0) {
+      report += `No chat conversation recorded yet.\n`;
+    } else {
+      messages.forEach((m, idx) => {
+        report += `### ${idx + 1}. [${m.sender === "user" ? "Tenant Question" : "VerifiedVakil Answer"}] (${m.timestamp})\n`;
+        report += `${m.text}\n\n`;
+        if (m.counterDraftClause) {
+          report += `> **${m.counterDraftClause.title}**\n`;
+          report += `> "${m.counterDraftClause.clauseText}"\n\n`;
+        }
+      });
+    }
+    report += `\n---\n*Disclaimer: Assistive reading and negotiation solution. Does not constitute lawyer advice.*`;
+    const blob = new Blob([report], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `VerifiedVakil_Assistant_Report_${Date.now()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleToggleVoiceInput = () => {
+    if (typeof window === "undefined") return;
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) {
+      alert("Voice input is not supported in this browser. Please try Google Chrome or Edge.");
+      return;
+    }
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+    try {
+      const recognition = new SpeechRec();
+      recognition.lang = "en-IN";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.onstart = () => setIsListening(true);
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        setIsListening(false);
+      };
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
+      recognition.start();
+    } catch {
+      setIsListening(false);
+    }
+  };
+
+  const handlePaperclipFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type.startsWith("image/")) {
+      if (onSelectView) onSelectView("upload");
+    } else {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const text = ev.target?.result as string;
+        if (text && onUploadFileText) {
+          onUploadFileText(text, file.name);
+        } else if (text) {
+          setInput(`I attached ${file.name}. Please check its security deposit and notice period terms.`);
+        }
+      };
+      reader.readAsText(file);
+    }
   };
 
   const handleSend = async (questionText: string) => {
@@ -267,16 +400,22 @@ export default function ChatbotAssistant({
           )}
           <button
             type="button"
-            className="p-2 rounded-xl bg-slate-800/70 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-            title="Listen to summary"
+            onClick={handleToggleAudioSummary}
+            className={`p-2 rounded-xl transition-colors ${
+              isSpeaking
+                ? "bg-cyan-950 text-cyan-300 border border-cyan-500/50 animate-pulse"
+                : "bg-slate-800/70 hover:bg-slate-700 text-slate-400 hover:text-white"
+            }`}
+            title={isSpeaking ? "Stop audio speech" : "Listen to audio summary"}
             aria-label="Audio summary"
           >
-            <Volume2 className="w-4 h-4" />
+            {isSpeaking ? <VolumeX className="w-4 h-4 text-cyan-400" /> : <Volume2 className="w-4 h-4" />}
           </button>
           <button
             type="button"
+            onClick={handleDownloadChatReport}
             className="p-2 rounded-xl bg-slate-800/70 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-            title="Download report"
+            title="Download consultation report"
             aria-label="Download legal summary"
           >
             <Download className="w-4 h-4" />
@@ -692,19 +831,34 @@ export default function ChatbotAssistant({
         }}
         className="p-3 bg-slate-900/95 border-t border-slate-800 flex items-center gap-2"
       >
+        <input
+          type="file"
+          ref={paperclipInputRef}
+          onChange={handlePaperclipFile}
+          accept=".txt,.doc,.docx,.pdf,image/*"
+          className="hidden"
+        />
         <button
           type="button"
+          onClick={() => paperclipInputRef.current?.click()}
           className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors shrink-0"
           title="Attach lease agreement or image scan"
+          aria-label="Attach lease file"
         >
           <Paperclip className="w-4 h-4" />
         </button>
         <button
           type="button"
-          className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors shrink-0"
-          title="Voice input"
+          onClick={handleToggleVoiceInput}
+          className={`p-2 rounded-xl transition-colors shrink-0 ${
+            isListening
+              ? "bg-rose-950 text-rose-300 border border-rose-500/50 animate-pulse"
+              : "bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700"
+          }`}
+          title={isListening ? "Listening... click to stop" : "Voice input (Click to speak)"}
+          aria-label="Voice input"
         >
-          <Mic className="w-4 h-4" />
+          <Mic className={`w-4 h-4 ${isListening ? "text-rose-400" : ""}`} />
         </button>
 
         <input

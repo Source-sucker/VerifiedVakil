@@ -59,6 +59,7 @@ export default function HomePage() {
   const [compareLoading, setCompareLoading] = useState(false);
   const [selectedBench, setSelectedBench] = useState<string | null>(null);
   const [selectedClauseToAsk, setSelectedClauseToAsk] = useState<AnalyzedClause | null>(null);
+  const [pendingChatQuestion, setPendingChatQuestion] = useState<string | null>(null);
 
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -890,8 +891,13 @@ export default function HomePage() {
                   analysis={analysis}
                   documentTitle={documentTitle}
                   selectedClauseToAsk={selectedClauseToAsk}
+                  pendingQuestion={pendingChatQuestion}
+                  onClearPendingQuestion={() => setPendingChatQuestion(null)}
                   onLoadDemo={loadSample}
                   onSelectView={setActiveView}
+                  onUploadFileText={(text, title) => {
+                    handleUploadedDocument(text, title);
+                  }}
                 />
               </div>
             </div>
@@ -1102,6 +1108,7 @@ export default function HomePage() {
             <section aria-labelledby="knowledge-heading">
               <IPLKnowledgeBank
                 onAskChatbot={(question) => {
+                  setPendingChatQuestion(question);
                   setActiveView("chatbot");
                 }}
               />
