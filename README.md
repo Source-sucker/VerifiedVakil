@@ -3,7 +3,7 @@
 
 > **One-liner:** A legal-document assistant for Indian residential tenants that is architecturally incapable of inventing a law, section, or precedent it cannot verify.
 
-[![Tests](https://img.shields.io/badge/Vitest-15%20passed%20(876ms)-emerald)](tests/)
+[![Tests](https://img.shields.io/badge/Vitest-17%20passed%20(799ms)-emerald)](tests/)
 [![Git Repo Size](https://img.shields.io/badge/Repo%20Size-2.7MB%20%28Budget%3A%20%3C10MB%29-blue)](.)
 [![Model](https://img.shields.io/badge/GenAI-Gemini%20Flash%20(cascading)-indigo)](https://ai.google.dev/)
 [![Stack](https://img.shields.io/badge/Framework-Next.js%2015%20App%20Router-black)](.)
@@ -72,8 +72,8 @@ As required by Section 3.2 of the Challenge Brief:
 
 | # | Feature | GenAI Service | Integration Point | Input Given to Model | Output | Guardrail Enforced in Prompt |
 |---|---|---|---|---|---|---|
-| 1 | Plain-language clause rewrite | Gemini Flash (cascading) | `/api/analyze` → `simplifyClauseWithAI()` | Clause text + deterministic tag | 2–3 sentence plain-English rewrite | *"Rewrite only. Do not add any legal claim, number, or obligation not present in the source text."* |
-| 2 | Risk explanation | Gemini Flash (cascading) | `/api/analyze` → `explainRiskWithAI()` | Clause text + deterministic risk score + matched citation entry (or `null`) | 2–4 sentence explanation of the flag | *"You may reference ONLY the citation object provided. If it is null, state plainly that no verified reference is available and recommend confirming with a lawyer. Never name a law, section, or case not present in context."* |
+| 1 | Plain-language clause rewrite | Gemini Flash (cascading) | `/api/simplify` & `/api/analyze` → `simplifyClauseWithAI()` | Clause text + deterministic tag | 2–3 sentence plain-English rewrite | *"Rewrite only. Do not add any legal claim, number, or obligation not present in the source text."* |
+| 2 | Risk explanation | Gemini Flash (cascading) | `/api/explain-risk` & `/api/analyze` → `explainRiskWithAI()` | Clause text + deterministic risk score + matched citation entry (or `null`) | 2–4 sentence explanation of the flag | *"You may reference ONLY the citation object provided. If it is null, state plainly that no verified reference is available and recommend confirming with a lawyer. Never name a law, section, or case not present in context."* |
 | 3 | Document Q&A | Gemini Flash (cascading) | `/api/ask` | User question + top-k matched clauses (deterministic retrieval) + their citation entries | Grounded answer or explicit refusal | Same citation lock as #2, plus: if the question requires jurisdiction-specific certainty beyond the curated table, decline and redirect to a professional. |
 | 4 | Multimodal OCR | Gemini Vision + Tesseract.js fallback | `/api/ocr` → `performOCRWithGemini()` | Document photo / scanned image (base64) | Transcribed agreement text | *"Transcribe all text accurately. Do not add commentary. Output only the exact transcribed text."* |
 | 5 | Checklist / next-steps generation | Gemini Flash (cascading) | `/api/checklist` | List of already-flagged clause objects | Action checklist + "ask your landlord/lawyer" questions | *"Every checklist item must reference an existing flagged clause id. Do not invent new concerns."* |
@@ -120,7 +120,7 @@ Tested on Apple Silicon / Vercel Serverless environment:
 | Full Deterministic Document Analysis | `/api/analyze` (det pass) | **~10ms** |
 | Parallel Gemini Simplification & Explanation | Gemini Flash (cascading) | **650ms – 920ms** |
 | Complete End-to-End Pipeline | `/api/analyze` | **~850ms** |
-| Vitest Test Suite (15 unit + adversarial tests) | Vitest v3.2 | **876ms** |
+| Vitest Test Suite (17 unit + adversarial tests) | Vitest v3.2 | **799ms** |
 
 ---
 
@@ -139,7 +139,7 @@ Tested on Apple Silicon / Vercel Serverless environment:
 ```bash
 # 1. Clone repository
 git clone https://github.com/Source-sucker/prompt-wars.git
-cd verifiedvakil
+cd prompt-wars
 
 # 2. Install dependencies
 npm install

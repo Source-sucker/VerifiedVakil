@@ -25,6 +25,7 @@ import {
   Camera,
   Gavel,
   Check,
+  User,
 } from "lucide-react";
 import { DocumentAnalysisResult, AnalyzedClause } from "@/lib/clauseEngine";
 import ClauseCard from "@/components/ClauseCard";
@@ -32,6 +33,7 @@ import CompareView from "@/components/CompareView";
 import ChatbotAssistant from "@/components/ChatbotAssistant";
 import DocumentUploadZone from "@/components/DocumentUploadZone";
 import LawyerQuestionsModal from "@/components/LawyerQuestionsModal";
+import SafetyBenchmarkModal from "@/components/SafetyBenchmarkModal";
 import LatencyBadge from "@/components/LatencyBadge";
 import RadialGauge from "@/components/RadialGauge";
 import Sidebar, { NavView } from "@/components/Sidebar";
@@ -52,6 +54,7 @@ export default function HomePage() {
   const [activeView, setActiveView] = useState<NavView>("chatbot");
   const [filterRisk, setFilterRisk] = useState<string>("all");
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
+  const [isBenchmarkModalOpen, setIsBenchmarkModalOpen] = useState(false);
   const [compareData, setCompareData] = useState<any>(null);
   const [compareLoading, setCompareLoading] = useState(false);
   const [selectedBench, setSelectedBench] = useState<string | null>(null);
@@ -241,6 +244,14 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen bg-[#070b13] text-slate-100">
+      {/* Skip Navigation Link for Accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 z-50 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-2xl focus:outline-none ring-2 ring-white"
+      >
+        Skip to main content
+      </a>
+
       {/* Sidebar Navigation */}
       <Sidebar
         activeView={activeView}
@@ -376,6 +387,18 @@ export default function HomePage() {
                 totalMs={timings.totalMs}
               />
 
+              <button
+                type="button"
+                onClick={() => setIsBenchmarkModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-950/90 to-indigo-950/90 hover:from-cyan-900 hover:to-indigo-900 text-cyan-200 border border-cyan-500/40 text-xs font-bold shadow-md shadow-cyan-950/40 transition-all"
+                title="View live comparison between generic LLMs and VerifiedVakil citation locking"
+                aria-label="Open AI Safety Benchmark modal"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="hidden sm:inline">AI Safety Benchmark</span>
+                <span className="sm:hidden">Benchmark</span>
+              </button>
+
               {analysis && (
                 <button
                   onClick={() => setIsChecklistModalOpen(true)}
@@ -386,16 +409,20 @@ export default function HomePage() {
                 </button>
               )}
 
-              {/* User Avatar (AK) */}
-              <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white font-mono font-bold text-xs flex items-center justify-center shadow-md shadow-indigo-600/30">
-                AK
+              {/* User Profile Avatar */}
+              <div 
+                className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white flex items-center justify-center shadow-md shadow-indigo-600/30 border border-indigo-400/30"
+                title="Tenant Profile"
+                aria-label="Tenant Profile"
+              >
+                <User className="w-4 h-4 text-indigo-100" />
               </div>
             </div>
           </div>
         </header>
 
         {/* Dashboard Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] w-full mx-auto">
+        <main id="main-content" className="flex-1 p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] w-full mx-auto">
           {/* Dedicated Demo Scenarios Section */}
           <section aria-label="Demo Scenarios" className="glass-panel p-4 sm:p-5 rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-slate-950 via-indigo-950/20 to-slate-950 shadow-xl space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800/80">
@@ -888,6 +915,7 @@ export default function HomePage() {
                   <span className="text-slate-400 text-[11px] mr-1">Filter:</span>
                   <button
                     onClick={() => setFilterRisk("all")}
+                    aria-pressed={filterRisk === "all"}
                     className={`px-2.5 py-1 rounded-lg font-mono text-xs transition-colors ${
                       filterRisk === "all" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
                     }`}
@@ -896,6 +924,7 @@ export default function HomePage() {
                   </button>
                   <button
                     onClick={() => setFilterRisk("high")}
+                    aria-pressed={filterRisk === "high"}
                     className={`px-2.5 py-1 rounded-lg font-mono text-xs transition-colors ${
                       filterRisk === "high"
                         ? "bg-rose-950 text-rose-300 border border-rose-800/50"
@@ -906,6 +935,7 @@ export default function HomePage() {
                   </button>
                   <button
                     onClick={() => setFilterRisk("moderate")}
+                    aria-pressed={filterRisk === "moderate"}
                     className={`px-2.5 py-1 rounded-lg font-mono text-xs transition-colors ${
                       filterRisk === "moderate"
                         ? "bg-amber-950 text-amber-300 border border-amber-800/50"
@@ -916,6 +946,7 @@ export default function HomePage() {
                   </button>
                   <button
                     onClick={() => setFilterRisk("standard")}
+                    aria-pressed={filterRisk === "standard"}
                     className={`px-2.5 py-1 rounded-lg font-mono text-xs transition-colors ${
                       filterRisk === "standard"
                         ? "bg-emerald-950 text-emerald-300 border border-emerald-800/50"
@@ -1094,6 +1125,12 @@ export default function HomePage() {
         isOpen={isApiKeyModalOpen}
         onClose={() => setIsApiKeyModalOpen(false)}
         onKeySaved={handleApiKeySaved}
+      />
+
+      {/* AI Safety Benchmark Modal (Unconstrained LLM vs VerifiedVakil) */}
+      <SafetyBenchmarkModal
+        isOpen={isBenchmarkModalOpen}
+        onClose={() => setIsBenchmarkModalOpen(false)}
       />
     </div>
   );

@@ -247,7 +247,7 @@ export default function ChatbotAssistant({
               </span>
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5">
-              Model Tenancy Act 2021 • Supreme Court Precedents • State Rent Rules
+              Model Tenancy Act 2021 • Supreme Court Precedents • Transfer of Property Act
             </p>
           </div>
         </div>
@@ -518,7 +518,7 @@ export default function ChatbotAssistant({
                       : "bg-gradient-to-tr from-cyan-600 to-indigo-600 shadow-md shadow-cyan-600/20"
                   }`}
                 >
-                  {m.sender === "user" ? "AK" : <Scale className="w-4 h-4" />}
+                  {m.sender === "user" ? <User className="w-4 h-4" /> : <Scale className="w-4 h-4" />}
                 </div>
 
                 {/* Bubble */}
@@ -534,7 +534,29 @@ export default function ChatbotAssistant({
                     <span className="font-semibold text-slate-300">
                       {m.sender === "user" ? "You (Tenant)" : "VerifiedVakil Legal Assistant"}
                     </span>
-                    <span className="font-mono text-[10px] text-slate-500">{m.timestamp}</span>
+                    <div className="flex items-center gap-2">
+                      {m.sender === "assistant" && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopyClause(m.text, `msg-${m.id}`)}
+                          className="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-cyan-300 transition-colors"
+                          title="Copy response"
+                        >
+                          {copiedClauseId === `msg-${m.id}` ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-400" />
+                              <span className="text-emerald-400">Copied</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span>Copy</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                      <span className="font-mono text-[10px] text-slate-500">{m.timestamp}</span>
+                    </div>
                   </div>
 
                   {/* Plain text / Question */}
@@ -708,7 +730,7 @@ export default function ChatbotAssistant({
       <div className="px-4 py-1.5 bg-[#05080e] border-t border-slate-900 flex items-center justify-between text-[10px] text-slate-500 font-mono">
         <span className="flex items-center gap-1 text-cyan-400/90">
           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 inline-block" />
-          Statutory Safeguard Active: Citations verified against India Code &amp; Karnataka Gazettes
+          Statutory Safeguard Active: Citations verified against India Code &amp; Official Central Gazettes
         </span>
         <span className="text-slate-400">MTA 2021 Model Baseline</span>
       </div>

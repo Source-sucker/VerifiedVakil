@@ -138,8 +138,8 @@ export default function Sidebar({
           Indian Tenancy Laws Grounded
         </p>
         <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
-          <span className="font-semibold text-slate-200">Bengaluru, KA</span>
-          <span className="text-[10px] text-cyan-400 font-mono">Model Tenancy Act</span>
+          <span className="font-semibold text-slate-200">National Tenancy</span>
+          <span className="text-[10px] text-cyan-400 font-mono">MTA 2021 Baseline</span>
         </div>
       </div>
     </aside>
