@@ -1099,7 +1099,38 @@ export default function HomePage() {
                   userRiskCounts={compareData.userRiskCounts}
                   baselineRiskCounts={compareData.baselineRiskCounts}
                 />
-              ) : null}
+              ) : (
+                <div className="glass-panel p-8 rounded-2xl border border-slate-800 text-center space-y-4 max-w-md mx-auto my-8">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto">
+                    <Scale className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-base font-bold text-white">Generate Statutory Benchmark Diff</h3>
+                  <p className="text-xs text-slate-400">
+                    Compare your uploaded agreement against the Model Tenancy Act 2021 government baseline.
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (agreementText) {
+                        setCompareLoading(true);
+                        fetch("/api/compare", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ userText: agreementText }),
+                        })
+                          .then((res) => res.json())
+                          .then((data) => {
+                            if (data.success) setCompareData(data);
+                          })
+                          .catch((err) => console.error("Compare fetch failed:", err))
+                          .finally(() => setCompareLoading(false));
+                      }
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-colors"
+                  >
+                    Run Model Tenancy Act Comparison
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
