@@ -926,6 +926,7 @@ export default function HomePage() {
           onClose={() => setIsChecklistModalOpen(false)}
           clauses={analysis.clauses}
           safetyScore={analysis.safetyScore}
+          documentTitle={documentTitle || "Rental Agreement"}
         />
       )}
 

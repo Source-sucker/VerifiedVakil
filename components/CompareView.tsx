@@ -20,6 +20,7 @@ import {
   Sparkles,
   ExternalLink,
 } from "lucide-react";
+import { printCounterOfferNotice, printInspectionProtocol } from "@/lib/printUtils";
 
 interface ComparisonItem {
   feature: string;
@@ -446,7 +447,14 @@ Prospective Tenant`;
                     Download .txt
                   </button>
                   <button
-                    onClick={() => window.print()}
+                    onClick={() => {
+                      printCounterOfferNotice({
+                        tenantName,
+                        landlordName,
+                        propertyAddress,
+                        noticeText: emailLetter,
+                      });
+                    }}
                     className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors"
                   >
                     <Printer className="w-3.5 h-3.5" />
@@ -542,9 +550,24 @@ Prospective Tenant`;
                 <span className="text-xs text-slate-400">
                   {Object.values(inspectionChecked).filter(Boolean).length} of 6 steps completed
                 </span>
-                <button
-                  onClick={() => {
-                    const content = `# VerifiedVakil — Move-in Evidence & Inspection Protocol
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      printInspectionProtocol({
+                        tenantName,
+                        landlordName,
+                        propertyAddress,
+                        checkedItems: inspectionChecked,
+                      });
+                    }}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    Print / PDF Checklist
+                  </button>
+                  <button
+                    onClick={() => {
+                      const content = `# VerifiedVakil — Move-in Evidence & Inspection Protocol
 Property: ${propertyAddress}
 Tenant: ${tenantName}
 Landlord: ${landlordName}
@@ -560,13 +583,14 @@ In accordance with Model Tenancy Act 2021 and Transfer of Property Act 1882, thi
 
 Tenant Signature: _______________________
 Landlord Signature: _____________________`;
-                    downloadFile(content, `move-in-inspection-${tenantName.toLowerCase().replace(/\s+/g, "-")}.md`);
-                  }}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-md transition-colors"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Download Inspection Protocol (.md)
-                </button>
+                      downloadFile(content, `move-in-inspection-${tenantName.toLowerCase().replace(/\s+/g, "-")}.md`);
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-md transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Download Inspection Protocol (.md)
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -3,12 +3,14 @@
 import React from "react";
 import { X, Printer, Scale, FileCheck2, HelpCircle } from "lucide-react";
 import { AnalyzedClause } from "@/lib/clauseEngine";
+import { printLegalBrief } from "@/lib/printUtils";
 
 interface LawyerQuestionsModalProps {
   isOpen: boolean;
   onClose: () => void;
   clauses: AnalyzedClause[];
   safetyScore: number;
+  documentTitle?: string;
 }
 
 export default function LawyerQuestionsModal({
@@ -16,12 +18,21 @@ export default function LawyerQuestionsModal({
   onClose,
   clauses,
   safetyScore,
+  documentTitle = "Rental Agreement",
 }: LawyerQuestionsModalProps) {
   if (!isOpen) return null;
 
   const flaggedClauses = clauses.filter(
     (c) => c.riskLevel === "HIGH_RISK" || c.riskLevel === "MODERATE_RISK"
   );
+
+  const handlePrint = () => {
+    printLegalBrief({
+      documentTitle,
+      safetyScore,
+      clauses,
+    });
+  };
 
   return (
     <div
@@ -41,7 +52,7 @@ export default function LawyerQuestionsModal({
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => window.print()}
+              onClick={handlePrint}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors"
             >
               <Printer className="w-3.5 h-3.5" />

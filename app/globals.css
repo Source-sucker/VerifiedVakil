@@ -50,40 +50,77 @@ body {
   background: #3b82f6;
 }
 
-/* Print styles for Lawyer Export */
+/* Print styles for Clean A4 Export */
 @media print {
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
+  @page {
+    size: A4 portrait;
+    margin: 15mm 15mm 15mm 15mm;
   }
-  .no-print {
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide navigation, sidebar, interactive controls, and dark theme decorations */
+  aside,
+  header,
+  nav,
+  button,
+  .no-print,
+  #vv-print-frame {
     display: none !important;
   }
+
   .print-only {
     display: block !important;
   }
+
+  /* Remove all overflow scroll locks across all containers during print */
+  div, main, section {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
   .glass-panel {
     background: #ffffff !important;
-    border: 1px solid #cccccc !important;
+    border: 1px solid #cbd5e1 !important;
     box-shadow: none !important;
-    color: #000000 !important;
+    color: #0f172a !important;
   }
+
+  /* Clean Modal Print Presentation */
   [role="dialog"] {
     position: static !important;
     background: transparent !important;
     padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
   }
+
   [role="dialog"] > div {
     max-width: 100% !important;
     max-height: none !important;
     border: none !important;
     box-shadow: none !important;
     background: #ffffff !important;
-    color: #000000 !important;
+    color: #0f172a !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
   }
+
   [role="dialog"] * {
-    color: #111827 !important;
-    border-color: #e5e7eb !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
     background-color: transparent !important;
   }
 }
