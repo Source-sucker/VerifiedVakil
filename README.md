@@ -155,3 +155,14 @@ npm test
 npm run dev
 # Open http://localhost:3000
 ```
+
+## 9. Deploying To Vercel
+
+This repository is a Next.js App Router project and must be deployed from the repository root, where `package.json`, `app/`, and `vercel.json` are located.
+
+1. In Vercel, import `Source-sucker/VerifiedVakil` and leave **Root Directory** set to `.`.
+2. Keep the framework preset as **Next.js**. The checked-in `vercel.json` uses `npm ci` and `npm run build`.
+3. Add `GEMINI_API_KEY` under **Project Settings > Environment Variables** for Preview and Production if live Gemini responses are required. The app still has deterministic fallback explanations without it.
+4. Redeploy the `main` branch and open the deployment URL at `/`. The health check is the VerifiedVakil landing page, not an API route.
+
+If Vercel shows `404 NOT_FOUND`, check that the deployment is using this repository's root directory and that the deployment details show the `main` branch commit containing `app/page.tsx`. Do not set the project to Static HTML or use an `output: "export"` configuration; the API routes require the Next.js server runtime.
