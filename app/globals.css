@@ -2,60 +2,279 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Design Tokens ───────────────────────────────────────────────────────── */
 :root {
-  --background: #080c14;
+  --background: #071016;
   --foreground: #f1f5f9;
+
+  /* Surface colors */
+  --surface-0: #071016;
+  --surface-1: #0d1820;
+  --surface-2: #13212a;
+  --surface-3: #1b2c36;
+
+  /* Accent palette */
+  --indigo-glow: rgba(45, 212, 191, 0.18);
+  --cyan-glow:   rgba(34, 211, 238, 0.14);
+  --rose-glow:   rgba(244, 63, 94, 0.16);
+  --emerald-glow:rgba(52, 211, 153, 0.16);
+
+  /* Border tokens */
+  --border-subtle: rgba(255,255,255,0.055);
+  --border-muted:  rgba(255,255,255,0.095);
+  --border-accent: rgba(99,102,241,0.35);
+
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
 }
+
+/* ─── Base Reset ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   min-height: 100vh;
+  /* Subtle dot-grid ambient texture */
+  background-image:
+    radial-gradient(circle at 18% 12%, rgba(45, 212, 191, 0.08) 0%, transparent 42%),
+    radial-gradient(circle at 84% 78%, rgba(251, 146, 60, 0.05) 0%, transparent 45%),
+    radial-gradient(rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 28px 28px;
 }
 
-/* Glassmorphic card styling */
+/* ─── Glass Panels ───────────────────────────────────────────────────────── */
 .glass-panel {
-  background: rgba(17, 24, 39, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(11, 16, 30, 0.72);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid var(--border-subtle);
 }
 
 .glass-panel:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--border-muted);
 }
 
-/* Subtle glowing gradients */
-.glow-accent {
-  box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.2);
+/* Premium card with inner glow */
+.card-glow {
+  background: rgba(11, 16, 30, 0.80);
+  border: 1px solid var(--border-subtle);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04) inset,
+    0 1px 0 rgba(255,255,255,0.07) inset,
+    0 8px 32px rgba(0,0,0,0.4);
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.card-glow:hover {
+  border-color: var(--border-muted);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.07) inset,
+    0 1px 0 rgba(255,255,255,0.10) inset,
+    0 12px 40px rgba(0,0,0,0.5);
 }
 
-::-webkit-scrollbar-track {
-  background: #0b0f19;
+/* High risk card */
+.card-risk-high {
+  background: rgba(127, 29, 29, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 20px -8px rgba(239, 68, 68, 0.15) inset;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #273549;
-  border-radius: 3px;
+/* Moderate risk card */
+.card-risk-moderate {
+  background: rgba(120, 53, 15, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  box-shadow: 0 0 20px -8px rgba(245, 158, 11, 0.12) inset;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #3b82f6;
+/* Safe card */
+.card-risk-safe {
+  background: rgba(6, 78, 59, 0.07);
+  border: 1px solid rgba(52, 211, 153, 0.18);
 }
 
-/* Print styles for Clean A4 Export */
-@media print {
-  @page {
-    size: A4 portrait;
-    margin: 15mm 15mm 15mm 15mm;
+/* Indigo accent glow */
+.glow-indigo {
+  box-shadow: 0 0 30px -8px var(--indigo-glow);
+}
+.glow-cyan {
+  box-shadow: 0 0 30px -8px var(--cyan-glow);
+}
+
+/* ─── Gradient Text ──────────────────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #818cf8 0%, #38bdf8 50%, #818cf8 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: shimmer-text 4s ease-in-out infinite;
+}
+
+.gradient-text-gold {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ─── Premium Button ─────────────────────────────────────────────────────── */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  border: 1px solid rgba(94, 234, 212, 0.35);
+  box-shadow: 0 0 20px rgba(20, 184, 166, 0.22), 0 1px 0 rgba(255,255,255,0.12) inset;
+  transition: all 0.2s ease;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 30px rgba(20, 184, 166, 0.35), 0 1px 0 rgba(255,255,255,0.14) inset;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active { transform: translateY(0); }
+
+/* ─── Sidebar Nav Item ───────────────────────────────────────────────────── */
+.nav-item-active {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.25) 0%, rgba(99, 102, 241, 0.15) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  box-shadow: 0 0 16px -4px rgba(99, 102, 241, 0.2), 0 1px 0 rgba(255,255,255,0.05) inset;
+  color: #a5b4fc;
+}
+
+.nav-item {
+  border: 1px solid transparent;
+  transition: all 0.18s ease;
+  color: #64748b;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.07);
+  color: #cbd5e1;
+}
+
+/* ─── Risk Badge Pills ───────────────────────────────────────────────────── */
+.pill-high {
+  background: rgba(127,29,29,0.5);
+  border: 1px solid rgba(239,68,68,0.35);
+  color: #fca5a5;
+  box-shadow: 0 0 8px rgba(239,68,68,0.15);
+}
+
+.pill-moderate {
+  background: rgba(120,53,15,0.45);
+  border: 1px solid rgba(245,158,11,0.35);
+  color: #fcd34d;
+}
+
+.pill-safe {
+  background: rgba(6,78,59,0.45);
+  border: 1px solid rgba(52,211,153,0.30);
+  color: #6ee7b7;
+}
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+@keyframes shimmer-text {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  50%  { transform: scale(1.3); opacity: 0; }
+  100% { transform: scale(1);   opacity: 0; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.15); }
+  50%       { box-shadow: 0 0 40px rgba(99, 102, 241, 0.30); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in-up  { animation: fade-in-up  0.35s ease both; }
+.animate-slide-in    { animation: slide-in-left 0.3s ease both; }
+.animate-glow-pulse  { animation: glow-pulse 2.5s ease-in-out infinite; }
+
+/* Stagger children fade-in */
+.stagger-children > * {
+  animation: fade-in-up 0.4s ease both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.10s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.20s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+
+button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
+
+:focus-visible {
+  outline: 2px solid #5eead4;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #07090f; }
+::-webkit-scrollbar-thumb { background: #1e2d42; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+
+/* ─── Typography ─────────────────────────────────────────────────────────── */
+.label-section {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+/* ─── Status Dot ─────────────────────────────────────────────────────────── */
+.status-dot-live {
+  position: relative;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #34d399;
+}
+.status-dot-live::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: rgba(52, 211, 153, 0.35);
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+/* ─── Print Styles ───────────────────────────────────────────────────────── */
+@media print {
+  @page { size: A4 portrait; margin: 15mm; }
 
   html, body {
     background: #ffffff !important;
@@ -66,55 +285,38 @@ body {
     overflow: visible !important;
   }
 
-  /* Hide navigation, sidebar, interactive controls, and dark theme decorations */
-  aside,
-  header,
-  nav,
-  button,
-  .no-print,
-  #vv-print-frame {
+  aside, header, nav, button, .no-print, #vv-print-frame {
     display: none !important;
   }
 
-  .print-only {
-    display: block !important;
-  }
+  .print-only { display: block !important; }
 
-  /* Remove all overflow scroll locks across all containers during print */
   div, main, section {
     overflow: visible !important;
     max-height: none !important;
     height: auto !important;
   }
 
-  .glass-panel {
+  .glass-panel, .card-glow {
     background: #ffffff !important;
     border: 1px solid #cbd5e1 !important;
     box-shadow: none !important;
     color: #0f172a !important;
   }
 
-  /* Clean Modal Print Presentation */
   [role="dialog"] {
     position: static !important;
     background: transparent !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
+    padding: 0 !important; margin: 0 !important;
+    width: 100% !important; max-width: 100% !important;
+    height: auto !important; overflow: visible !important;
   }
 
   [role="dialog"] > div {
-    max-width: 100% !important;
-    max-height: none !important;
-    border: none !important;
-    box-shadow: none !important;
-    background: #ffffff !important;
-    color: #0f172a !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    max-width: 100% !important; max-height: none !important;
+    border: none !important; box-shadow: none !important;
+    background: #ffffff !important; color: #0f172a !important;
+    padding: 0 !important; margin: 0 !important;
     overflow: visible !important;
   }
 

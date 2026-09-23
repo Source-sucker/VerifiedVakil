@@ -9,7 +9,8 @@ import {
   MessageSquare,
   BookOpen,
   ShieldCheck,
-  Zap,
+  Upload,
+  Sparkles,
 } from "lucide-react";
 
 export type NavView = "chatbot" | "inspector" | "upload" | "compare" | "knowledge";
@@ -27,98 +28,153 @@ export default function Sidebar({
   safetyScore = 100,
   totalClauses = 0,
 }: SidebarProps) {
-  const clauseBadgeText = `${totalClauses} ${totalClauses === 1 ? "Clause" : "Clauses"}`;
+  const clauseBadgeText = `${totalClauses}`;
 
   const navItems = [
     {
       id: "chatbot" as NavView,
-      label: "Ask AI Assistant",
+      label: "AI Legal Assistant",
+      sublabel: "Ask anything",
       icon: <MessageSquare className="w-4 h-4" />,
-      badge: "Chat",
     },
     {
       id: "inspector" as NavView,
-      label: "Review Clauses",
+      label: "Clause Inspector",
+      sublabel: `${totalClauses} clauses`,
       icon: <LayoutDashboard className="w-4 h-4" />,
-      badge: clauseBadgeText,
     },
     {
       id: "knowledge" as NavView,
-      label: "Tenant Rights & Laws",
+      label: "Tenant Rights",
+      sublabel: "Supreme Court",
       icon: <BookOpen className="w-4 h-4" />,
-      badge: "Supreme Court",
     },
     {
       id: "upload" as NavView,
-      label: "Upload Agreement",
+      label: "Upload Document",
+      sublabel: "Scan / Text",
       icon: <FileSearch className="w-4 h-4" />,
-      badge: "Scan / PDF",
     },
     {
       id: "compare" as NavView,
-      label: "Compare with Fair Rules",
+      label: "Compare vs Law",
+      sublabel: "Govt. baseline",
       icon: <GitCompare className="w-4 h-4" />,
-      badge: "Govt Model",
     },
   ];
+
+  const scoreColor = safetyScore >= 75 ? "#34d399" : safetyScore >= 50 ? "#fbbf24" : "#f87171";
+  const scoreLabel = safetyScore >= 75 ? "Safe" : safetyScore >= 50 ? "Risky" : "Predatory";
+  const scoreBg = safetyScore >= 75 ? "rgba(6,78,59,0.4)" : safetyScore >= 50 ? "rgba(120,53,15,0.4)" : "rgba(127,29,29,0.4)";
+  const scoreBorder = safetyScore >= 75 ? "rgba(52,211,153,0.25)" : safetyScore >= 50 ? "rgba(245,158,11,0.25)" : "rgba(248,113,113,0.25)";
 
   return (
     <aside
       aria-label="Sidebar Navigation"
-      className="w-64 shrink-0 glass-panel border-r border-slate-800/90 flex flex-col justify-between p-4 hidden md:flex min-h-[calc(100vh-42px)]"
+      className="w-60 shrink-0 flex-col justify-between hidden md:flex min-h-screen"
+      style={{
+        background: "rgba(6,9,20,0.85)",
+        backdropFilter: "blur(20px)",
+        borderRight: "1px solid rgba(255,255,255,0.05)",
+      }}
     >
-      <div className="space-y-6">
-        {/* Brand */}
-        <div className="flex items-center gap-3 px-2">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-            <Scale className="w-5 h-5 text-white" aria-hidden="true" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-base font-extrabold tracking-tight text-white">
-                VerifiedVakil
-              </span>
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-500/40 font-bold">
-                Tenant Protection
-              </span>
+      {/* Brand Header */}
+      <div className="flex flex-col flex-1 overflow-y-auto">
+        <div className="px-4 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{
+                background: "linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)",
+                boxShadow: "0 0 20px rgba(99,102,241,0.4), 0 1px 0 rgba(255,255,255,0.15) inset",
+              }}
+            >
+              <Scale className="w-4.5 h-4.5 text-white" />
             </div>
-            <p className="text-[10px] text-slate-400 font-medium">
-              Rental Agreement Reviewer
-            </p>
+            <div>
+              <div className="text-sm font-extrabold tracking-tight" style={{ color: "#e2e8f0" }}>
+                VerifiedVakil
+              </div>
+              <div className="text-[10px] font-medium" style={{ color: "#475569" }}>
+                Tenancy Law AI
+              </div>
+            </div>
           </div>
+
+          {/* Safety Score Bar (when analysis is loaded) */}
+          {totalClauses > 0 && (
+            <div
+              className="mt-4 p-2.5 rounded-xl"
+              style={{
+                background: scoreBg,
+                border: `1px solid ${scoreBorder}`,
+              }}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-semibold" style={{ color: "#94a3b8" }}>
+                  Contract Safety
+                </span>
+                <span className="text-[10px] font-bold" style={{ color: scoreColor }}>
+                  {scoreLabel}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className="flex-1 h-1.5 rounded-full"
+                  style={{ background: "rgba(255,255,255,0.08)" }}
+                >
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${safetyScore}%`,
+                      background: `linear-gradient(90deg, ${scoreColor}88, ${scoreColor})`,
+                      boxShadow: `0 0 8px ${scoreColor}60`,
+                    }}
+                  />
+                </div>
+                <span className="text-xs font-black tabular-nums" style={{ color: scoreColor }}>
+                  {safetyScore}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Navigation links */}
-        <nav className="space-y-1.5" aria-label="Main Navigation">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 pb-1">
-            Features
-          </div>
+        {/* Navigation */}
+        <nav className="flex-1 p-3 space-y-0.5" aria-label="Main Navigation">
+          <div className="label-section px-2 pb-2 pt-1">Features</div>
           {navItems.map((item) => {
             const isActive = activeView === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => onSelectView(item.id)}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
-                    : "text-slate-400 hover:text-white hover:bg-slate-900/60"
-                }`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${isActive ? "nav-item-active" : "nav-item"}`}
               >
-                <div className="flex items-center gap-2.5">
+                <span
+                  className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+                  style={{
+                    background: isActive
+                      ? "rgba(99,102,241,0.25)"
+                      : "rgba(255,255,255,0.04)",
+                    color: isActive ? "#a5b4fc" : "#475569",
+                  }}
+                >
                   {item.icon}
-                  <span>{item.label}</span>
+                </span>
+                <div className="min-w-0">
+                  <div className={`text-xs font-semibold leading-tight ${isActive ? "text-indigo-300" : "text-slate-400"}`}>
+                    {item.label}
+                  </div>
+                  <div className="text-[10px] leading-tight" style={{ color: "#334155" }}>
+                    {item.sublabel}
+                  </div>
                 </div>
-                {item.badge && (
-                  <span
-                    className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                      isActive
-                        ? "bg-white/20 text-white"
-                        : "bg-slate-800 text-slate-400 border border-slate-700/60"
-                    }`}
-                  >
-                    {item.badge}
-                  </span>
+                {isActive && (
+                  <div
+                    className="ml-auto w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ background: "#6366f1", boxShadow: "0 0 6px #6366f1" }}
+                  />
                 )}
               </button>
             );
@@ -126,20 +182,40 @@ export default function Sidebar({
         </nav>
       </div>
 
-      {/* Bottom Status Card */}
-      <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-2.5">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-slate-300 flex items-center gap-1.5 text-[11px] font-semibold">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            Legal Citations: Verified
+      {/* Footer Status */}
+      <div
+        className="mx-3 mb-4 p-3 rounded-xl"
+        style={{
+          background: "rgba(255,255,255,0.025)",
+          border: "1px solid rgba(255,255,255,0.05)",
+        }}
+      >
+        <div className="flex items-center gap-2 mb-1.5">
+          <div className="status-dot-live" />
+          <span className="text-[11px] font-semibold" style={{ color: "#94a3b8" }}>
+            Citation Engine Active
           </span>
         </div>
-        <p className="text-[10px] text-slate-400 leading-snug">
-          Indian Tenancy Laws Grounded
+        <p className="text-[10px] leading-snug" style={{ color: "#334155" }}>
+          Grounded in MTA 2021, TPA 1882, ICA 1872 — zero hallucination.
         </p>
-        <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
-          <span className="font-semibold text-slate-200">National Tenancy</span>
-          <span className="text-[10px] text-cyan-400 font-mono">MTA 2021 Baseline</span>
+        <div
+          className="mt-2 pt-2 flex items-center justify-between"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        >
+          <span className="text-[10px] font-medium" style={{ color: "#475569" }}>
+            Model Tenancy Act
+          </span>
+          <span
+            className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md"
+            style={{
+              background: "rgba(34,211,238,0.1)",
+              border: "1px solid rgba(34,211,238,0.2)",
+              color: "#22d3ee",
+            }}
+          >
+            2021
+          </span>
         </div>
       </div>
     </aside>

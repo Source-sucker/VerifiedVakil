@@ -182,7 +182,7 @@ export default function HomePage() {
     : [];
 
   return (
-    <div className="flex min-h-screen bg-[#070b13] text-slate-100">
+    <div className="flex min-h-screen text-slate-100" style={{ background: "var(--background)" }}>
       {/* Skip Navigation Link for Accessibility */}
       <a
         href="#main-content"
@@ -202,24 +202,50 @@ export default function HomePage() {
       {/* Main Workspace */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navbar */}
-        <header className="sticky top-0 z-30 bg-[#090d16]/95 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 py-2.5 no-print">
+        <header
+          className="sticky top-0 z-30 px-4 sm:px-6 py-2.5 no-print"
+          style={{
+            background: "rgba(6,9,20,0.88)",
+            backdropFilter: "blur(20px)",
+            borderBottom: "1px solid rgba(255,255,255,0.055)",
+          }}
+        >
           <div className="flex items-center justify-between gap-3">
-            {/* Left: Brand & Active Document Status Pill */}
+            {/* Left: Brand & Document Status */}
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-md shadow-cyan-500/20 shrink-0">
+              <div
+                className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                style={{
+                  background: "linear-gradient(135deg, #4f46e5, #06b6d4)",
+                  boxShadow: "0 0 16px rgba(99,102,241,0.4)",
+                }}
+              >
                 <Scale className="w-4 h-4 text-white" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-extrabold text-white tracking-tight shrink-0">VerifiedVakil</span>
+                  <span className="text-sm font-extrabold tracking-tight shrink-0" style={{ color: "#e2e8f0" }}>VerifiedVakil</span>
                   {analysis ? (
-                    <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-[10px] font-mono text-slate-200 truncate max-w-[240px]">
-                      <span className={`w-1.5 h-1.5 rounded-full ${analysis.safetyScore >= 75 ? "bg-emerald-400" : analysis.safetyScore >= 50 ? "bg-amber-400" : "bg-rose-400"}`} />
-                      <span className="truncate">{documentTitle || "Lease Analyzed"}</span>
-                      <span className="text-slate-400 font-bold">({analysis.safetyScore}/100)</span>
+                    <span
+                      className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono truncate max-w-[220px]"
+                      style={{
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        color: "#94a3b8",
+                      }}
+                    >
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ background: analysis.safetyScore >= 75 ? "#34d399" : analysis.safetyScore >= 50 ? "#fbbf24" : "#f87171" }}
+                      />
+                      <span className="truncate">{documentTitle || "Agreement Loaded"}</span>
+                      <span style={{ color: analysis.safetyScore >= 75 ? "#34d399" : analysis.safetyScore >= 50 ? "#fbbf24" : "#f87171" }}>({analysis.safetyScore}/100)</span>
                     </span>
                   ) : (
-                    <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-400">
+                    <span
+                      className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono"
+                      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "#334155" }}
+                    >
                       No Agreement Loaded
                     </span>
                   )}
@@ -227,108 +253,77 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Center: Sleek Single-Row Demo Preset Switcher (Uncluttered) */}
-            <div className="hidden lg:flex items-center gap-1.5 bg-slate-950/90 px-2 py-1 rounded-xl border border-slate-800 text-xs">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">Test Leases:</span>
-              <button
-                type="button"
-                onClick={() => loadSample("sample-lease-aggressive.txt", "aggressive", "Demo: Landlord Payment Request")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5 ${
-                  selectedBench === "aggressive"
-                    ? "bg-rose-950 text-rose-300 border border-rose-500/50 shadow-sm"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                <span>Landlord Demand</span>
-                <span className="text-[9px] px-1 rounded bg-rose-900/40 text-rose-300 font-mono">High Risk</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => loadSample("sample-lease-fair.txt", "fair", "Demo: Fair Standard Agreement")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5 ${
-                  selectedBench === "fair"
-                    ? "bg-emerald-950 text-emerald-300 border border-emerald-500/50 shadow-sm"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span>Fair Govt Model</span>
-                <span className="text-[9px] px-1 rounded bg-emerald-900/40 text-emerald-300 font-mono">Safe</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => loadSample("sample-lease-adversarial.txt", "adversarial", "Demo: Unfair Entry & Lock-in")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5 ${
-                  selectedBench === "adversarial"
-                    ? "bg-amber-950 text-amber-300 border border-amber-500/50 shadow-sm"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                <span>Lock-in Trap</span>
-                <span className="text-[9px] px-1 rounded bg-amber-900/40 text-amber-300 font-mono">Illegal</span>
-              </button>
+            {/* Center: Demo Preset Switcher */}
+            <div
+              className="hidden lg:flex items-center gap-1 px-2 py-1 rounded-xl text-xs"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+            >
+              <span className="text-[10px] font-bold uppercase tracking-wider px-1.5" style={{ color: "#334155" }}>Try:</span>
+              {[
+                { bench: "aggressive", file: "sample-lease-aggressive.txt", title: "Demo: Landlord Payment Request", label: "Predatory", badgeLabel: "High Risk", color: "#f87171", bg: "rgba(127,29,29,0.4)", border: "rgba(248,113,113,0.35)" },
+                { bench: "fair", file: "sample-lease-fair.txt", title: "Demo: Fair Standard Agreement", label: "Fair", badgeLabel: "Safe", color: "#34d399", bg: "rgba(6,78,59,0.4)", border: "rgba(52,211,153,0.35)" },
+                { bench: "adversarial", file: "sample-lease-adversarial.txt", title: "Demo: Unfair Entry & Lock-in", label: "Lock-in", badgeLabel: "Illegal", color: "#fbbf24", bg: "rgba(120,53,15,0.4)", border: "rgba(251,191,36,0.35)" },
+              ].map(({ bench, file, title, label, badgeLabel, color, bg, border }) => (
+                <button
+                  key={bench}
+                  type="button"
+                  onClick={() => loadSample(file, bench, title)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
+                  style={selectedBench === bench ? { background: bg, border: `1px solid ${border}`, color } : { color: "#475569" }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
+                  {label}
+                </button>
+              ))}
             </div>
 
-            {/* Right: Actions, Benchmark, & Modals */}
-            <div className="flex items-center gap-2">
+            {/* Right: Action bar */}
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => setIsApiKeyModalOpen(true)}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all ${
-                  apiStatus === "connected"
-                    ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/50"
-                    : "bg-slate-900/80 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
-                }`}
-                title="Click to configure Gemini API Key"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
+                style={apiStatus === "connected"
+                  ? { background: "rgba(6,78,59,0.4)", border: "1px solid rgba(52,211,153,0.3)", color: "#6ee7b7" }
+                  : { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#64748b" }
+                }
+                title="Configure Gemini API Key"
               >
                 <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    apiStatus === "connected"
-                      ? "bg-emerald-400 animate-pulse"
-                      : apiStatus === "checking"
-                      ? "bg-cyan-400 animate-ping"
-                      : "bg-amber-400"
-                  }`}
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ background: apiStatus === "connected" ? "#34d399" : apiStatus === "checking" ? "#22d3ee" : "#fbbf24" }}
                 />
-                <span className="hidden sm:inline">
-                  {apiStatus === "connected" ? "Gemini Active" : "Set API Key"}
-                </span>
+                <span className="hidden sm:inline">{apiStatus === "connected" ? "Gemini Live" : "Set API Key"}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsBenchmarkModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/30 text-xs font-semibold shadow-sm transition-all"
-                title="View live comparison between unconstrained LLMs and citation locking"
-                aria-label="Open AI Safety Benchmark modal"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                style={{ background: "rgba(34,211,238,0.06)", border: "1px solid rgba(34,211,238,0.2)", color: "#22d3ee" }}
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="hidden sm:inline">AI Safety Benchmark</span>
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">AI Safety</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveView("upload")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all"
-                title="Upload or scan a new rental agreement"
+                className="btn-primary flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-white text-xs font-bold transition-all"
               >
                 <Upload className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Upload New</span>
+                <span className="hidden sm:inline">Upload</span>
               </button>
 
               {analysis && (
                 <button
                   type="button"
                   onClick={() => setIsChecklistModalOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all"
-                  title="Export Consultation Report"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-xs font-bold transition-all"
+                  style={{ background: "rgba(126,34,206,0.7)", border: "1px solid rgba(167,139,250,0.3)" }}
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span className="hidden md:inline">Export Report</span>
+                  <span className="hidden md:inline">Export</span>
                 </button>
               )}
             </div>
@@ -371,69 +366,145 @@ export default function HomePage() {
 
         {/* Dashboard Content */}
         <main id="main-content" className="flex-1 p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] w-full mx-auto">
-          {/* VIEW 1: CHATBOT GUIDE (TWO-COLUMN COCKPIT) */}
+          {/* VIEW 1: CHATBOT GUIDE */}
           {activeView === "chatbot" && (
             <div>
               {!analysis ? (
-                <div className="glass-panel p-8 sm:p-12 rounded-3xl border border-slate-800 text-center space-y-6 max-w-2xl mx-auto my-12 shadow-2xl bg-gradient-to-b from-slate-900/80 to-[#090d16]">
-                  <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-cyan-500/20 to-indigo-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/10">
-                    <Bot className="w-8 h-8 text-cyan-300" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-extrabold text-white tracking-tight">Welcome to VerifiedVakil</h3>
-                    <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
-                      AI-powered residential tenancy assistant grounded in the Model Tenancy Act 2021 and Transfer of Property Act 1882.
-                    </p>
-                  </div>
+                /* ── HERO LANDING STATE ─────────────────────── */
+                <div className="max-w-4xl mx-auto my-6 sm:my-10 animate-fade-in-up">
+                  {/* Hero card */}
+                  <div
+                    className="relative overflow-hidden rounded-3xl p-6 sm:p-10 text-center space-y-7"
+                    style={{
+                      background: "rgba(10, 23, 29, 0.88)",
+                      border: "1px solid rgba(94,234,212,0.16)",
+                      boxShadow: "0 0 80px rgba(20,184,166,0.06), 0 30px 60px rgba(0,0,0,0.42), 0 1px 0 rgba(255,255,255,0.05) inset",
+                    }}
+                  >
+                    {/* Background glow blobs */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-40 rounded-full blur-3xl pointer-events-none"
+                      style={{ background: "radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 70%)" }} />
 
-                  <div className="pt-2 pb-1">
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">
-                      Quick Test with Real Rental Agreements:
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
-                      <button
-                        onClick={() => loadSample("sample-lease-aggressive.txt", "aggressive", "Demo: Landlord Payment Request")}
-                        className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-rose-500/50 hover:bg-slate-900 transition-all group"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white group-hover:text-rose-300 transition-colors">💳 Landlord Demand</span>
-                          <span className="px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 text-[9px] font-bold">High Risk</span>
-                        </div>
-                        <p className="text-[11px] text-slate-400 mt-1">10-month deposit, ₹45k painting deduction</p>
-                      </button>
-
-                      <button
-                        onClick={() => loadSample("sample-lease-fair.txt", "fair", "Demo: Fair Standard Agreement")}
-                        className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900 transition-all group"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">⚖️ Fair Govt Model</span>
-                          <span className="px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 text-[9px] font-bold">Safe</span>
-                        </div>
-                        <p className="text-[11px] text-slate-400 mt-1">2-month deposit cap, 24h entry notice</p>
-                      </button>
-
-                      <button
-                        onClick={() => loadSample("sample-lease-adversarial.txt", "adversarial", "Demo: Unfair Entry & Lock-in")}
-                        className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-amber-500/50 hover:bg-slate-900 transition-all group"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">🔒 Lock-in Trap</span>
-                          <span className="px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 text-[9px] font-bold">Illegal</span>
-                        </div>
-                        <p className="text-[11px] text-slate-400 mt-1">0-day notice inspection, penalty terms</p>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-center gap-3">
-                    <button
-                      onClick={() => setActiveView("upload")}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all"
+                    {/* Icon */}
+                    <div
+                      className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto"
+                      style={{
+                        background: "linear-gradient(135deg, rgba(79,70,229,0.25) 0%, rgba(6,182,212,0.15) 100%)",
+                        border: "1px solid rgba(99,102,241,0.3)",
+                        boxShadow: "0 0 30px rgba(99,102,241,0.2)",
+                      }}
                     >
-                      <Upload className="w-4 h-4" />
-                      Upload or Scan Your Agreement
-                    </button>
+                      <Bot className="w-8 h-8" style={{ color: "#818cf8" }} />
+                    </div>
+
+                    <div className="space-y-2.5">
+                      <div className="label-section text-teal-300">A clearer read before you sign</div>
+                      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight" style={{ color: "#f1f5f9" }}>
+                        Understand your rental agreement before you sign.
+                      </h1>
+                      <p className="text-sm max-w-xl mx-auto leading-relaxed" style={{ color: "#8fa3ad" }}>
+                        Upload a residential lease and get a plain-English review of deposits, notice periods, entry rights, and other terms that deserve a closer look.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-left max-w-2xl mx-auto">
+                      {[
+                        ["01", "Upload", "Drop in a text file or scan"],
+                        ["02", "Review", "See every flagged clause"],
+                        ["03", "Prepare", "Take clear questions to a lawyer"],
+                      ].map(([number, title, copy]) => (
+                        <div key={number} className="flex items-start gap-2.5 rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                          <span className="text-[10px] font-mono font-bold text-teal-300 mt-0.5">{number}</span>
+                          <div>
+                            <div className="text-xs font-bold text-slate-200">{title}</div>
+                            <div className="text-[10px] text-slate-500 leading-snug">{copy}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Demo scenario cards */}
+                    <div className="space-y-2.5">
+                      <div className="label-section text-center mb-3">See how the review works</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+                        {[
+                          {
+                            icon: <AlertTriangle className="w-4 h-4" />,
+                            label: "Landlord Demand",
+                            desc: "10-month deposit, ₹45k painting fee",
+                            badge: "High Risk",
+                            bench: "aggressive",
+                            file: "sample-lease-aggressive.txt",
+                            title: "Demo: Landlord Payment Request",
+                            badgeColor: "#f87171",
+                            badgeBg: "rgba(127,29,29,0.5)",
+                            badgeBorder: "rgba(248,113,113,0.3)",
+                            hoverBorder: "rgba(248,113,113,0.3)",
+                          },
+                          {
+                            icon: <CheckCircle2 className="w-4 h-4" />,
+                            label: "Fair Govt Model",
+                            desc: "2-month deposit cap, 24h entry notice",
+                            badge: "Safe",
+                            bench: "fair",
+                            file: "sample-lease-fair.txt",
+                            title: "Demo: Fair Standard Agreement",
+                            badgeColor: "#6ee7b7",
+                            badgeBg: "rgba(6,78,59,0.5)",
+                            badgeBorder: "rgba(52,211,153,0.3)",
+                            hoverBorder: "rgba(52,211,153,0.3)",
+                          },
+                          {
+                            icon: <ShieldAlert className="w-4 h-4" />,
+                            label: "Lock-in Trap",
+                            desc: "0-day notice inspection, penalty terms",
+                            badge: "Illegal",
+                            bench: "adversarial",
+                            file: "sample-lease-adversarial.txt",
+                            title: "Demo: Unfair Entry & Lock-in",
+                            badgeColor: "#fcd34d",
+                            badgeBg: "rgba(120,53,15,0.5)",
+                            badgeBorder: "rgba(251,191,36,0.3)",
+                            hoverBorder: "rgba(251,191,36,0.3)",
+                          },
+                        ].map((item) => (
+                          <button
+                            key={item.bench}
+                            onClick={() => loadSample(item.file, item.bench, item.title)}
+                            className="p-3.5 rounded-2xl text-left transition-all group"
+                            style={{
+                              background: "rgba(255,255,255,0.03)",
+                              border: `1px solid rgba(255,255,255,0.07)`,
+                            }}
+                            onMouseOver={(e) => (e.currentTarget.style.borderColor = item.hoverBorder)}
+                            onMouseOut={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)")}
+                          >
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-xs font-bold" style={{ color: "#e2e8f0" }}>
+                                <span className="inline-flex items-center gap-1.5">{item.icon}{item.label}</span>
+                              </span>
+                              <span
+                                className="text-[9px] font-bold px-1.5 py-0.5 rounded-md"
+                                style={{ background: item.badgeBg, border: `1px solid ${item.badgeBorder}`, color: item.badgeColor }}
+                              >
+                                {item.badge}
+                              </span>
+                            </div>
+                            <p className="text-[11px]" style={{ color: "#475569" }}>{item.desc}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} className="pt-6">
+                      <button
+                        onClick={() => setActiveView("upload")}
+                        className="btn-primary flex items-center gap-2 px-6 py-2.5 rounded-xl text-white font-bold text-sm mx-auto"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Upload or Scan Your Agreement
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (
